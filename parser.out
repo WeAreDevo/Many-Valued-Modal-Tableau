@@ -1,0 +1,320 @@
+Created by PLY version 3.11 (http://www.dabeaz.com/ply)
+
+Grammar
+
+Rule 0     S' -> expression
+Rule 1     expression -> expression AND expression
+Rule 2     expression -> expression OR expression
+Rule 3     expression -> expression IMPLIES expression
+Rule 4     expression -> BOX expression
+Rule 5     expression -> DIAMOND expression
+Rule 6     expression -> VAR
+Rule 7     expression -> VALUE
+Rule 8     expression -> LPAREN expression RPAREN
+
+Terminals, with rules where they appear
+
+AND                  : 1
+BOX                  : 4
+DIAMOND              : 5
+IMPLIES              : 3
+LPAREN               : 8
+OR                   : 2
+RPAREN               : 8
+VALUE                : 7
+VAR                  : 6
+error                : 
+
+Nonterminals, with rules where they appear
+
+expression           : 1 1 2 2 3 3 4 5 8 0
+
+Parsing method: LALR
+
+state 0
+
+    (0) S' -> . expression
+    (1) expression -> . expression AND expression
+    (2) expression -> . expression OR expression
+    (3) expression -> . expression IMPLIES expression
+    (4) expression -> . BOX expression
+    (5) expression -> . DIAMOND expression
+    (6) expression -> . VAR
+    (7) expression -> . VALUE
+    (8) expression -> . LPAREN expression RPAREN
+
+    BOX             shift and go to state 2
+    DIAMOND         shift and go to state 3
+    VAR             shift and go to state 4
+    VALUE           shift and go to state 5
+    LPAREN          shift and go to state 6
+
+    expression                     shift and go to state 1
+
+state 1
+
+    (0) S' -> expression .
+    (1) expression -> expression . AND expression
+    (2) expression -> expression . OR expression
+    (3) expression -> expression . IMPLIES expression
+
+    AND             shift and go to state 7
+    OR              shift and go to state 8
+    IMPLIES         shift and go to state 9
+
+
+state 2
+
+    (4) expression -> BOX . expression
+    (1) expression -> . expression AND expression
+    (2) expression -> . expression OR expression
+    (3) expression -> . expression IMPLIES expression
+    (4) expression -> . BOX expression
+    (5) expression -> . DIAMOND expression
+    (6) expression -> . VAR
+    (7) expression -> . VALUE
+    (8) expression -> . LPAREN expression RPAREN
+
+    BOX             shift and go to state 2
+    DIAMOND         shift and go to state 3
+    VAR             shift and go to state 4
+    VALUE           shift and go to state 5
+    LPAREN          shift and go to state 6
+
+    expression                     shift and go to state 10
+
+state 3
+
+    (5) expression -> DIAMOND . expression
+    (1) expression -> . expression AND expression
+    (2) expression -> . expression OR expression
+    (3) expression -> . expression IMPLIES expression
+    (4) expression -> . BOX expression
+    (5) expression -> . DIAMOND expression
+    (6) expression -> . VAR
+    (7) expression -> . VALUE
+    (8) expression -> . LPAREN expression RPAREN
+
+    BOX             shift and go to state 2
+    DIAMOND         shift and go to state 3
+    VAR             shift and go to state 4
+    VALUE           shift and go to state 5
+    LPAREN          shift and go to state 6
+
+    expression                     shift and go to state 11
+
+state 4
+
+    (6) expression -> VAR .
+
+    AND             reduce using rule 6 (expression -> VAR .)
+    OR              reduce using rule 6 (expression -> VAR .)
+    IMPLIES         reduce using rule 6 (expression -> VAR .)
+    $end            reduce using rule 6 (expression -> VAR .)
+    RPAREN          reduce using rule 6 (expression -> VAR .)
+
+
+state 5
+
+    (7) expression -> VALUE .
+
+    AND             reduce using rule 7 (expression -> VALUE .)
+    OR              reduce using rule 7 (expression -> VALUE .)
+    IMPLIES         reduce using rule 7 (expression -> VALUE .)
+    $end            reduce using rule 7 (expression -> VALUE .)
+    RPAREN          reduce using rule 7 (expression -> VALUE .)
+
+
+state 6
+
+    (8) expression -> LPAREN . expression RPAREN
+    (1) expression -> . expression AND expression
+    (2) expression -> . expression OR expression
+    (3) expression -> . expression IMPLIES expression
+    (4) expression -> . BOX expression
+    (5) expression -> . DIAMOND expression
+    (6) expression -> . VAR
+    (7) expression -> . VALUE
+    (8) expression -> . LPAREN expression RPAREN
+
+    BOX             shift and go to state 2
+    DIAMOND         shift and go to state 3
+    VAR             shift and go to state 4
+    VALUE           shift and go to state 5
+    LPAREN          shift and go to state 6
+
+    expression                     shift and go to state 12
+
+state 7
+
+    (1) expression -> expression AND . expression
+    (1) expression -> . expression AND expression
+    (2) expression -> . expression OR expression
+    (3) expression -> . expression IMPLIES expression
+    (4) expression -> . BOX expression
+    (5) expression -> . DIAMOND expression
+    (6) expression -> . VAR
+    (7) expression -> . VALUE
+    (8) expression -> . LPAREN expression RPAREN
+
+    BOX             shift and go to state 2
+    DIAMOND         shift and go to state 3
+    VAR             shift and go to state 4
+    VALUE           shift and go to state 5
+    LPAREN          shift and go to state 6
+
+    expression                     shift and go to state 13
+
+state 8
+
+    (2) expression -> expression OR . expression
+    (1) expression -> . expression AND expression
+    (2) expression -> . expression OR expression
+    (3) expression -> . expression IMPLIES expression
+    (4) expression -> . BOX expression
+    (5) expression -> . DIAMOND expression
+    (6) expression -> . VAR
+    (7) expression -> . VALUE
+    (8) expression -> . LPAREN expression RPAREN
+
+    BOX             shift and go to state 2
+    DIAMOND         shift and go to state 3
+    VAR             shift and go to state 4
+    VALUE           shift and go to state 5
+    LPAREN          shift and go to state 6
+
+    expression                     shift and go to state 14
+
+state 9
+
+    (3) expression -> expression IMPLIES . expression
+    (1) expression -> . expression AND expression
+    (2) expression -> . expression OR expression
+    (3) expression -> . expression IMPLIES expression
+    (4) expression -> . BOX expression
+    (5) expression -> . DIAMOND expression
+    (6) expression -> . VAR
+    (7) expression -> . VALUE
+    (8) expression -> . LPAREN expression RPAREN
+
+    BOX             shift and go to state 2
+    DIAMOND         shift and go to state 3
+    VAR             shift and go to state 4
+    VALUE           shift and go to state 5
+    LPAREN          shift and go to state 6
+
+    expression                     shift and go to state 15
+
+state 10
+
+    (4) expression -> BOX expression .
+    (1) expression -> expression . AND expression
+    (2) expression -> expression . OR expression
+    (3) expression -> expression . IMPLIES expression
+
+    AND             reduce using rule 4 (expression -> BOX expression .)
+    OR              reduce using rule 4 (expression -> BOX expression .)
+    IMPLIES         reduce using rule 4 (expression -> BOX expression .)
+    $end            reduce using rule 4 (expression -> BOX expression .)
+    RPAREN          reduce using rule 4 (expression -> BOX expression .)
+
+  ! AND             [ shift and go to state 7 ]
+  ! OR              [ shift and go to state 8 ]
+  ! IMPLIES         [ shift and go to state 9 ]
+
+
+state 11
+
+    (5) expression -> DIAMOND expression .
+    (1) expression -> expression . AND expression
+    (2) expression -> expression . OR expression
+    (3) expression -> expression . IMPLIES expression
+
+    AND             reduce using rule 5 (expression -> DIAMOND expression .)
+    OR              reduce using rule 5 (expression -> DIAMOND expression .)
+    IMPLIES         reduce using rule 5 (expression -> DIAMOND expression .)
+    $end            reduce using rule 5 (expression -> DIAMOND expression .)
+    RPAREN          reduce using rule 5 (expression -> DIAMOND expression .)
+
+  ! AND             [ shift and go to state 7 ]
+  ! OR              [ shift and go to state 8 ]
+  ! IMPLIES         [ shift and go to state 9 ]
+
+
+state 12
+
+    (8) expression -> LPAREN expression . RPAREN
+    (1) expression -> expression . AND expression
+    (2) expression -> expression . OR expression
+    (3) expression -> expression . IMPLIES expression
+
+    RPAREN          shift and go to state 16
+    AND             shift and go to state 7
+    OR              shift and go to state 8
+    IMPLIES         shift and go to state 9
+
+
+state 13
+
+    (1) expression -> expression AND expression .
+    (1) expression -> expression . AND expression
+    (2) expression -> expression . OR expression
+    (3) expression -> expression . IMPLIES expression
+
+    AND             reduce using rule 1 (expression -> expression AND expression .)
+    OR              reduce using rule 1 (expression -> expression AND expression .)
+    IMPLIES         reduce using rule 1 (expression -> expression AND expression .)
+    $end            reduce using rule 1 (expression -> expression AND expression .)
+    RPAREN          reduce using rule 1 (expression -> expression AND expression .)
+
+  ! AND             [ shift and go to state 7 ]
+  ! OR              [ shift and go to state 8 ]
+  ! IMPLIES         [ shift and go to state 9 ]
+
+
+state 14
+
+    (2) expression -> expression OR expression .
+    (1) expression -> expression . AND expression
+    (2) expression -> expression . OR expression
+    (3) expression -> expression . IMPLIES expression
+
+    OR              reduce using rule 2 (expression -> expression OR expression .)
+    IMPLIES         reduce using rule 2 (expression -> expression OR expression .)
+    $end            reduce using rule 2 (expression -> expression OR expression .)
+    RPAREN          reduce using rule 2 (expression -> expression OR expression .)
+    AND             shift and go to state 7
+
+  ! AND             [ reduce using rule 2 (expression -> expression OR expression .) ]
+  ! OR              [ shift and go to state 8 ]
+  ! IMPLIES         [ shift and go to state 9 ]
+
+
+state 15
+
+    (3) expression -> expression IMPLIES expression .
+    (1) expression -> expression . AND expression
+    (2) expression -> expression . OR expression
+    (3) expression -> expression . IMPLIES expression
+
+    IMPLIES         reduce using rule 3 (expression -> expression IMPLIES expression .)
+    $end            reduce using rule 3 (expression -> expression IMPLIES expression .)
+    RPAREN          reduce using rule 3 (expression -> expression IMPLIES expression .)
+    AND             shift and go to state 7
+    OR              shift and go to state 8
+
+  ! AND             [ reduce using rule 3 (expression -> expression IMPLIES expression .) ]
+  ! OR              [ reduce using rule 3 (expression -> expression IMPLIES expression .) ]
+  ! IMPLIES         [ shift and go to state 9 ]
+
+
+state 16
+
+    (8) expression -> LPAREN expression RPAREN .
+
+    AND             reduce using rule 8 (expression -> LPAREN expression RPAREN .)
+    OR              reduce using rule 8 (expression -> LPAREN expression RPAREN .)
+    IMPLIES         reduce using rule 8 (expression -> LPAREN expression RPAREN .)
+    $end            reduce using rule 8 (expression -> LPAREN expression RPAREN .)
+    RPAREN          reduce using rule 8 (expression -> LPAREN expression RPAREN .)
+

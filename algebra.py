@@ -3,30 +3,34 @@ from dataclasses import dataclass
 
 
 class Poset:
-    def __init__(self, elements, order=None):
+    def __init__(self, elements: set, order=None):
         self.elements = elements
         if order == None:
-            self.order = defaultdict(list)
+            self.order = defaultdict(set)
+        self.topsort = None
 
     def addEdge(self, u, v):
-        self.order[u].append(v)
+        self.order[u].add(v)
 
-    def topologicalSortUtil(self, v, visited, stack):
-        visited[v] = True
-        for i in self.order[v]:
-            if visited[i] == False:
-                self.topologicalSortUtil(i, visited, stack)
-        stack.appendleft(
-            v
-        )  # append to the left side of the deque, which is more efficient
+    def topologicalSortUtil(self, u, visited, stack):
+        visited[u] = True
+        for v in self.order[v]:
+            if visited[v] == False:
+                self.topologicalSortUtil(v, visited, stack)
+        stack.appendleft(u)
+
+    def getTopSort(self):
+        if self.topsort == None:
+            self.topologicalSort()
+        return self.topsort
 
     def topologicalSort(self):
-        visited = [False] * self.elements
+        visited = {e: False for e in self.elements}
         stack = deque()
-        for i in range(self.elements):
-            if visited[i] == False:
-                self.topologicalSortUtil(i, visited, stack)
-        return list(stack)
+        for e in self.elements:
+            if visited[e] == False:
+                self.topologicalSortUtil(e, visited, stack)
+        self.topsort = list(stack)
 
 
 @dataclass(
@@ -86,7 +90,6 @@ class HeytingAlgebra:
                     if self.joinOp[x][y] == x:
                         poset.addEdge(y, x)
             self.poset = poset
-        return
 
     def deriveImplies(self):
         return
@@ -96,8 +99,6 @@ class HeytingAlgebra:
             self.derivePoset()
 
         # Now do something with the topological sort?
-
-        return
 
     def deriveMeet(self):
         return

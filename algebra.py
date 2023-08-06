@@ -14,7 +14,7 @@ class Poset:
 
     def topologicalSortUtil(self, u, visited, stack):
         visited[u] = True
-        for v in self.order[v]:
+        for v in self.order[u]:
             if visited[v] == False:
                 self.topologicalSortUtil(v, visited, stack)
         stack.appendleft(u)
@@ -25,6 +25,7 @@ class Poset:
         return self.topsort
 
     def topologicalSort(self):
+        # construct list topsort from elements with the property: if a \leq b then a occurs in topsort before b (converse does not neccesarily hold if order is not total)
         visited = {e: False for e in self.elements}
         stack = deque()
         for e in self.elements:
@@ -55,24 +56,26 @@ class HeytingAlgebra:
         self.impliesOp = impliesOp
         self.poset = poset
 
-        if meetOp == None:
+        if self.meetOp == None:
+            self.meetOp = {a: {b: None for b in self.elements} for a in self.elements}
             if poset == None and joinOp == None:
                 raise ValueError(
                     "At least one of meetOp, joinOp or poset must be passed in order to uniquely determine the bounded lattice"
                 )
             self.deriveMeet()
 
-        if joinOp == None:
+        if self.joinOp == None:
+            self.joinOp = {a: {b: None for b in self.elements} for a in self.elements}
             if poset == None and meetOp == None:
                 raise ValueError(
                     "At least one of meetOp, joinOp or poset must be passed in order to uniquely determine the bounded lattice"
                 )
             self.deriveJoin()
 
-        if poset == None:
+        if self.poset == None:
             self.derivePoset()
 
-        if impliesOp == None:
+        if self.impliesOp == None:
             self.deriveImplies()
 
     def derivePoset(self):
@@ -99,6 +102,16 @@ class HeytingAlgebra:
             self.derivePoset()
 
         # Now do something with the topological sort?
+        t_sort = self.poset.getTopSort()
+        order = self.poset.order
+        for a in self.elements:
+            for b in self.elements:
+                if self.joinOp[a][b] != None:
+                    continue
+                for c in t_sort:
+                    if c in order[a] and c in order[b]:
+                        self.joinOp[a][b] = c
+                        break
 
     def deriveMeet(self):
         return
@@ -135,4 +148,4 @@ if __name__ == "__main__":
     }
 
     ha = HeytingAlgebra({bot, a, b, top}, meetOp=meetOp)
-    ha.derivePoset()
+    print("done")

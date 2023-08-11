@@ -1,4 +1,5 @@
 from ply import lex, yacc
+from algebra import TruthValue
 
 
 class AST_Node:
@@ -27,7 +28,7 @@ t_ignore = " \t"
 
 def t_VALUE(t):
     r"[a-o]\d*"
-    # t.value = Semantics(t.value)
+    t.value = TruthValue(t.value)
     return t
 
 
@@ -57,10 +58,11 @@ def p_expression(p):
                 | VALUE
     """
     if len(p) == 2:
-        # if isinstance(p[1], Semantics):
-        #     p[0] = p[1]
-        # else:
-        p[0] = AST_Node(type="VAR", val=p[1], children=[])
+        if isinstance(p[1], TruthValue):
+            atom = "VALUE"
+        else:
+            atom = "VALUE"
+        p[0] = AST_Node(type=atom, val=p[1], children=[])
     elif len(p) == 3:
         p[0] = AST_Node(type="unop", val=p[1], children=[p[2]])
     else:
@@ -88,7 +90,7 @@ def parse_expression(expression):
     return parser.parse(expression, lexer=lexer)
 
 
-expression = "[]p & p | q"
+expression = "[]p & p | q ->a"
 parsed_formula = parse_expression(expression)
 
 from PrettyPrint import PrettyPrintTree

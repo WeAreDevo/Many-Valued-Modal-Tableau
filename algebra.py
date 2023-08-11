@@ -1,5 +1,6 @@
 from collections import deque, defaultdict
 from dataclasses import dataclass
+import functools
 
 
 class Poset:
@@ -8,6 +9,9 @@ class Poset:
         if order == None:
             self.order = defaultdict(set)
         self.topsort = None
+
+    def leq(self, a, b):
+        return b in self.order[a]
 
     def addEdge(self, u, v):
         self.order[u].add(v)
@@ -55,28 +59,41 @@ class HeytingAlgebra:
         self.joinOp = joinOp
         self.impliesOp = impliesOp
         self.poset = poset
+        self.bot = None
+        self.top = None
 
         if self.meetOp == None:
-            self.meetOp = {a: {b: None for b in self.elements} for a in self.elements}
             if poset == None and joinOp == None:
                 raise ValueError(
                     "At least one of meetOp, joinOp or poset must be passed in order to uniquely determine the bounded lattice"
                 )
+            self.meetOp = {a: {b: None for b in self.elements} for a in self.elements}
             self.deriveMeet()
 
         if self.joinOp == None:
-            self.joinOp = {a: {b: None for b in self.elements} for a in self.elements}
             if poset == None and meetOp == None:
                 raise ValueError(
                     "At least one of meetOp, joinOp or poset must be passed in order to uniquely determine the bounded lattice"
                 )
+            self.joinOp = {a: {b: None for b in self.elements} for a in self.elements}
             self.deriveJoin()
 
         if self.poset == None:
             self.derivePoset()
 
+        self.getBot()
+
         if self.impliesOp == None:
+            self.impliesOp = {
+                a: {b: None for b in self.elements} for a in self.elements
+            }
             self.deriveImplies()
+
+    def getBot(self):
+        for e in self.elements:
+            if self.poset.order[e] == self.elements:
+                self.bot = e
+                return
 
     def derivePoset(self):
         poset = Poset(self.elements)
@@ -95,6 +112,14 @@ class HeytingAlgebra:
             self.poset = poset
 
     def deriveImplies(self):
+        # a -> b = join{c | a meet c \leq b}
+        for a in self.elements:
+            for b in self.elements:
+                self.impliesOp[a][b] = functools.reduce(
+                    self.join,
+                    [c for c in self.elements if self.poset.leq(self.meet(a, c), b)],
+                    self.bot,
+                )
         return
 
     def deriveJoin(self):
@@ -117,12 +142,13 @@ class HeytingAlgebra:
         return
 
     def meet(self, a, b):
-        """Define your meet operation here"""
-        pass
+        return self.meetOp[a][b]
 
     def join(self, a, b):
-        """Define your join operation here"""
-        pass
+        return self.joinOp[a][b]
+
+    def implies(self, a, b):
+        return self.impliesOp[a][b]
 
 
 if __name__ == "__main__":

@@ -139,7 +139,21 @@ class HeytingAlgebra:
                         break
 
     def deriveMeet(self):
-        return
+        if self.poset == None:
+            self.derivePoset()
+
+        # Now do something with the topological sort?
+        t_sort = self.poset.getTopSort()
+        t_sort = reversed(t_sort)
+        order = self.poset.order
+        for a in self.elements:
+            for b in self.elements:
+                if self.meetOp[a][b] != None:
+                    continue
+                for c in t_sort:
+                    if a in order[c] and b in order[c]:
+                        self.meetOp[a][b] = c
+                        break
 
     def meet(self, a, b):
         return self.meetOp[a][b]
@@ -173,5 +187,32 @@ if __name__ == "__main__":
         },
     }
 
-    ha = HeytingAlgebra({bot, a, b, top}, meetOp=meetOp)
+    joinOp = {
+        top: {
+            top: top,
+            a: top,
+            bot: top,
+            b: top,
+        },
+        a: {
+            top: top,
+            a: a,
+            bot: a,
+            b: top,
+        },
+        bot: {
+            top: top,
+            a: a,
+            bot: bot,
+            b: b,
+        },
+        b: {
+            top: top,
+            a: top,
+            bot: b,
+            b: b,
+        },
+    }
+
+    ha = HeytingAlgebra({bot, a, b, top}, joinOp=joinOp)
     print("done")

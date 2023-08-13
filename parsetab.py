@@ -27,12 +27,12 @@ for _k, _v in _lr_goto_items.items():
 del _lr_goto_items
 _lr_productions = [
   ("S' -> expression","S'",1,None,None,None),
-  ('expression -> expression AND expression','expression',3,'p_expression','syntax.py',51),
-  ('expression -> expression OR expression','expression',3,'p_expression','syntax.py',52),
-  ('expression -> expression IMPLIES expression','expression',3,'p_expression','syntax.py',53),
-  ('expression -> BOX expression','expression',2,'p_expression','syntax.py',54),
-  ('expression -> DIAMOND expression','expression',2,'p_expression','syntax.py',55),
-  ('expression -> VAR','expression',1,'p_expression','syntax.py',56),
-  ('expression -> VALUE','expression',1,'p_expression','syntax.py',57),
-  ('expression -> LPAREN expression RPAREN','expression',3,'p_expression_paren','syntax.py',75),
+  ('expression -> expression AND expression','expression',3,'p_expression','syntax.py',52),
+  ('expression -> expression OR expression','expression',3,'p_expression','syntax.py',53),
+  ('expression -> expression IMPLIES expression','expression',3,'p_expression','syntax.py',54),
+  ('expression -> BOX expression','expression',2,'p_expression','syntax.py',55),
+  ('expression -> DIAMOND expression','expression',2,'p_expression','syntax.py',56),
+  ('expression -> VAR','expression',1,'p_expression','syntax.py',57),
+  ('expression -> VALUE','expression',1,'p_expression','syntax.py',58),
+  ('expression -> LPAREN expression RPAREN','expression',3,'p_expression_paren','syntax.py',77),
 ]

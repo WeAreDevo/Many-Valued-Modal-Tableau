@@ -90,10 +90,11 @@ def parse_expression(expression):
     return parser.parse(expression, lexer=lexer)
 
 
-expression = "[]p & p | q ->a"
-parsed_formula = parse_expression(expression)
+if __name__ == "__main__":
+    expression = "[]p & p | q ->a"
+    parsed_formula = parse_expression(expression)
 
-from PrettyPrint import PrettyPrintTree
+    from PrettyPrint import PrettyPrintTree
 
-pt = PrettyPrintTree(lambda x: x.children, lambda x: x.val)
-pt(parsed_formula)
+    pt = PrettyPrintTree(lambda x: x.children, lambda x: x.val)
+    pt(parsed_formula)

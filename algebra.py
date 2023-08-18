@@ -37,6 +37,13 @@ class Poset:
                 self.topologicalSortUtil(e, visited, stack)
         self.topsort = list(stack)
 
+    def minimals(self, S: set):
+        M = set()
+        for x in self.topsort:
+            if x in S and all(not self.leq(m, x) for m in M):
+                M.add(x)
+        return M
+
 
 @dataclass(
     frozen=True
@@ -81,7 +88,7 @@ class HeytingAlgebra:
         if self.poset == None:
             self.derivePoset()
 
-        self.getBot()
+        self.__findBot()
 
         if self.impliesOp == None:
             self.impliesOp = {
@@ -89,11 +96,16 @@ class HeytingAlgebra:
             }
             self.deriveImplies()
 
-    def getBot(self):
+        self.__findTop()
+
+    def __findBot(self):
         for e in self.elements:
             if self.poset.order[e] == self.elements:
                 self.bot = e
                 return
+
+    def __findTop(self):
+        self.top = self.implies(self.bot, self.bot)
 
     def derivePoset(self):
         poset = Poset(self.elements)

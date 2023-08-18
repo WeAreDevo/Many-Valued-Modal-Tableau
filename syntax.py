@@ -11,6 +11,13 @@ class AST_Node:
             self.children = []
         self.val = val
 
+    def __eq__(self, other):
+        return (
+            self.type == other.type
+            and self.val == other.val
+            and self.children == other.children
+        )
+
 
 tokens = ("VAR", "BOX", "DIAMOND", "AND", "OR", "IMPLIES", "LPAREN", "RPAREN", "VALUE")
 
@@ -58,11 +65,7 @@ def p_expression(p):
                 | VALUE
     """
     if len(p) == 2:
-        if isinstance(p[1], TruthValue):
-            atom = "VALUE"
-        else:
-            atom = "VALUE"
-        p[0] = AST_Node(type=atom, val=p[1], children=[])
+        p[0] = AST_Node(type="atom", val=p[1], children=[])
     elif len(p) == 3:
         p[0] = AST_Node(type="unop", val=p[1], children=[p[2]])
     else:
@@ -92,9 +95,12 @@ def parse_expression(expression):
 
 if __name__ == "__main__":
     expression = "[]p & p | q ->a"
-    parsed_formula = parse_expression(expression)
+    parsed_formula1 = parse_expression(expression)
+    parsed_formula2 = parse_expression("((([]p) & p)  | q) ->a")
 
     from PrettyPrint import PrettyPrintTree
 
     pt = PrettyPrintTree(lambda x: x.children, lambda x: x.val)
-    pt(parsed_formula)
+    pt(parsed_formula1)
+    pt(parsed_formula2)
+    print(parsed_formula1 == parsed_formula2)

@@ -3,19 +3,19 @@ from algebra import TruthValue
 
 
 class AST_Node:
-    def __init__(self, type, val=None, children=None):
+    def __init__(self, type, val=None, proper_subformulas=None):
         self.type = type
-        if children:
-            self.children = children
+        if proper_subformulas:
+            self.proper_subformulas = proper_subformulas
         else:
-            self.children = []
+            self.proper_subformulas = []
         self.val = val
 
     def __eq__(self, other):
         return (
             self.type == other.type
             and self.val == other.val
-            and self.children == other.children
+            and self.proper_subformulas == other.children
         )
 
 
@@ -65,14 +65,14 @@ def p_expression(p):
                 | VALUE
     """
     if len(p) == 2:
-        p[0] = AST_Node(type="atom", val=p[1], children=[])
+        p[0] = AST_Node(type="atom", val=p[1], proper_subformulas=[])
     elif len(p) == 3:
-        p[0] = AST_Node(type="unop", val=p[1], children=[p[2]])
+        p[0] = AST_Node(type="unop", val=p[1], proper_subformulas=[p[2]])
     else:
         # TODO
         # if isinstance(p[1], Semantics) and isinstance(p[3], Semantics):
         #     #perform algebraic operation denoted by p[2] and set p[0] to the result
-        p[0] = AST_Node(type="binop", val=p[2], children=[p[1], p[3]])
+        p[0] = AST_Node(type="binop", val=p[2], proper_subformulas=[p[1], p[3]])
 
 
 def p_expression_paren(p):

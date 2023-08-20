@@ -44,6 +44,13 @@ class Poset:
                 M.add(x)
         return M
 
+    def maximals(self, S: set):
+        M = set()
+        for x in reversed(self.topsort):
+            if x in S and all(not self.leq(x, m) for m in M):
+                M.add(x)
+        return M
+
 
 @dataclass(
     frozen=True

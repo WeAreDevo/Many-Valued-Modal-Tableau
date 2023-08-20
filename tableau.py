@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from syntax import AST_Node, parse_expression
 from algebra import TruthValue, HeytingAlgebra, Poset
 from collections import deque
+import copy
 
 
 class UniqueSymbolGenerator:
@@ -29,7 +30,7 @@ gen = UniqueSymbolGenerator()
 @dataclass(frozen=True)
 class Signed_Formula:
     sign: str
-    parsed_formula: AST_Node
+    parse_tree: AST_Node
 
 
 class Tableau_Node:
@@ -64,70 +65,116 @@ class Tableau:
 def isClosed(node: Tableau_Node, H: HeytingAlgebra):
     signed_formula: Signed_Formula = node.signed_form
     sign = signed_formula.sign
-    parsed_formula = signed_formula.parsed_formula
+    parse_tree = signed_formula.parse_tree
 
-    if all(isinstance(child.val, TruthValue) for child in parsed_formula.children):
+    if all(
+        isinstance(child.val, TruthValue) for child in parse_tree.proper_subformulas
+    ):
         # p\bot_1
         if sign == "T" and not H.poset.leq(
-            parsed_formula.children[0].val, parsed_formula.children[1].val
+            parse_tree.proper_subformulas[0].val,
+            parse_tree.proper_subformulas[1].val,
         ):
             return True
         # p\bot_2
         if sign == "F" and H.poset.leq(
-            parsed_formula.children[0].val, parsed_formula.children[1].val
+            parse_tree.proper_subformulas[0].val,
+            parse_tree.proper_subformulas[1].val,
         ):
             return True
     # p\bot_3
-    if sign == "F" and parsed_formula.children[0].val == H.bot:
+    if sign == "F" and parse_tree.proper_subformulas[0].val == H.bot:
         return True
     # p\bot_4
-    if sign == "F" and parsed_formula.children[1].val == H.top:
+    if sign == "F" and parse_tree.proper_subformulas[1].val == H.top:
         return True
     # p\bot_5 (TODO investigate if this is a derived rule i.e. not nescessary for completeness)
-    if sign == "T" and isinstance(parsed_formula.children[0].val, TruthValue):
+    if sign == "T" and isinstance(parse_tree.proper_subformulas[0].val, TruthValue):
         curr = node.parent
         while curr != None:
             if (
                 curr.world == node.world
                 and curr.signed_formula.sign == "F"
                 and isinstance(
-                    curr.signed_formula.parsed_formula.children[0].val, TruthValue
+                    curr.signed_formula.parse_tree.proper_subformulas[0].val, TruthValue
                 )
-                and curr.signed_formula.parsed_formula.children[1]
-                == parsed_formula.children[1]
+                and curr.signed_formula.parse_tree.proper_subformulas[1]
+                == parse_tree.proper_subformulas[1]
             ):
                 if H.poset.leq(
-                    curr.signed_formula.parsed_formula.children[0].val,
-                    parsed_formula.children[0].val,
+                    curr.signed_formula.parse_tree.proper_subformulas[0].val,
+                    parse_tree.proper_subformulas[0].val,
                 ):
                     return True
             curr = curr.parent
     # TODO: symmetrical case.
-    if sign == "F" and isinstance(parsed_formula.children[0].val, TruthValue):
+    if sign == "F" and isinstance(parse_tree.proper_subformulas[0].val, TruthValue):
         curr = node.parent
         while curr != None:
             if (
                 curr.world == node.world
                 and curr.signed_formula.sign == "T"
                 and isinstance(
-                    curr.signed_formula.parsed_formula.children[0].val, TruthValue
+                    curr.signed_formula.parse_tree.proper_subformulas[0].val, TruthValue
                 )
-                and curr.signed_formula.parsed_formula.children[1]
-                == parsed_formula.children[1]
+                and curr.signed_formula.parse_tree.proper_subformulas[1]
+                == parse_tree.proper_subformulas[1]
             ):
                 if H.poset.leq(
-                    parsed_formula.children[0].val,
-                    curr.signed_formula.parsed_formula.children[0].val,
+                    parse_tree.proper_subformulas[0].val,
+                    curr.signed_formula.parse_tree.proper_subformulas[0].val,
                 ):
                     return True
             curr = curr.parent
 
 
-def isAtomic(parsed_formula: Signed_Formula):
+def isAtomic(parse_tree: AST_Node):
     return (
-        parsed_formula.children[0].type == "atom"
-        and parsed_formula.children[1].type == "atom"
+        parse_tree.proper_subformulas[0].type == "atom"
+        and parse_tree.proper_subformulas[1].type == "atom"
     )
+
+
+def forkOpenBranches(node: Tableau_Node, children: list[Tableau_Node], q: deque):
+    # DFS
+    if node.isClosed:
+        return
+    if not node.children:
+        children_copy = copy.deepcopy(children)
+        for c in children_copy:
+            c.parent = node
+        node.children = children_copy
+        q.extendleft(children_copy)
+        return
+    for child in node.children:
+        forkOpenBranches(child, children, q)
+
+
+def ApplyFleq(curr: Tableau_Node, q: deque(Tableau_Node), H: HeytingAlgebra):
+    signed_form: Signed_Formula = curr.signed_form
+    X = {
+        u
+        for u in H.elements
+        if not H.poset.leq(u, signed_form.parse_tree.proper_subformulas[1])
+    }
+    new_nodes = []
+    for u in H.poset.minimals(X):
+        proper_subformulas = list(
+            reversed(copy.deepcopy(signed_form.parse_tree.proper_subformulas))
+        )
+        new_form = AST_Node(
+            type=signed_form.parse_tree.type,
+            val=signed_form.parse_tree.val,
+            proper_subformulas=proper_subformulas,
+        )
+        new_signed_formula = Signed_Formula(sign="T", parse_tree=new_form)
+        n = Tableau_Node(
+            world=curr.world,
+            relation=copy.copy(curr.relation),
+            signed_formula=new_signed_formula,
+        )
+        new_nodes.append(n)
+    forkOpenBranches(curr, new_nodes, q)
 
 
 def construct_tableau(signed_formula: str, H: HeytingAlgebra):
@@ -146,8 +193,14 @@ def construct_tableau(signed_formula: str, H: HeytingAlgebra):
             current_node.closed = True
         else:
             X: Signed_Formula = current_node.signed_form
-            if isAtomic(X.parsed_formula):
-                pass
+            if isAtomic(X.parse_tree):
+                # Check if reversal rule sould be applied
+                if current_node.signed_form.sign == "F":
+                    if not isinstance(
+                        current_node.signed_form.parse_tree.proper_subformulas[0],
+                        TruthValue,
+                    ):
+                        ApplyFleq(current_node, q, H)
     return
 
 

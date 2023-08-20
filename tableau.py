@@ -46,7 +46,7 @@ class Tableau_Node:
         self.world = world
         self.relation = relation
         self.parent = parent
-        self.signed_form = signed_formula
+        self.signed_formula = signed_formula
         if children:
             self.children = children
         else:
@@ -63,7 +63,7 @@ class Tableau:
 
 
 def isClosed(node: Tableau_Node, H: HeytingAlgebra):
-    signed_formula: Signed_Formula = node.signed_form
+    signed_formula: Signed_Formula = node.signed_formula
     sign = signed_formula.sign
     parse_tree = signed_formula.parse_tree
 
@@ -137,7 +137,7 @@ def isAtomic(parse_tree: AST_Node):
 
 def forkOpenBranches(node: Tableau_Node, children: list[Tableau_Node], q: deque):
     # DFS
-    if node.isClosed:
+    if node.closed:
         return
     if not node.children:
         children_copy = copy.deepcopy(children)
@@ -150,18 +150,47 @@ def forkOpenBranches(node: Tableau_Node, children: list[Tableau_Node], q: deque)
         forkOpenBranches(child, children, q)
 
 
-def ApplyFleq(curr: Tableau_Node, q: deque(Tableau_Node), H: HeytingAlgebra):
-    signed_form: Signed_Formula = curr.signed_form
+def ApplyFleq(curr: Tableau_Node, q: deque[Tableau_Node], H: HeytingAlgebra):
+    signed_form: Signed_Formula = curr.signed_formula
     X = {
         u
         for u in H.elements
-        if not H.poset.leq(u, signed_form.parse_tree.proper_subformulas[1])
+        if not H.poset.leq(u, signed_form.parse_tree.proper_subformulas[1].val)
     }
     new_nodes = []
     for u in H.poset.minimals(X):
-        proper_subformulas = list(
-            reversed(copy.deepcopy(signed_form.parse_tree.proper_subformulas))
+        proper_subformulas = [
+            AST_Node("atom", u),
+            copy.deepcopy(signed_form.parse_tree.proper_subformulas[0]),
+        ]
+        new_form = AST_Node(
+            type=signed_form.parse_tree.type,
+            val=signed_form.parse_tree.val,
+            proper_subformulas=proper_subformulas,
         )
+        new_signed_formula = Signed_Formula(sign="T", parse_tree=new_form)
+        n = Tableau_Node(
+            world=curr.world,
+            relation=copy.copy(curr.relation),
+            signed_formula=new_signed_formula,
+        )
+        new_nodes.append(n)
+    forkOpenBranches(curr, new_nodes, q)
+
+
+def ApplyFgeq(curr: Tableau_Node, q: deque[Tableau_Node], H: HeytingAlgebra):
+    signed_form: Signed_Formula = curr.signed_formula
+    X = {
+        u
+        for u in H.elements
+        if not H.poset.leq(signed_form.parse_tree.proper_subformulas[0].val, u)
+    }
+    new_nodes = []
+    for u in H.poset.maximals(X):
+        proper_subformulas = [
+            copy.deepcopy(signed_form.parse_tree.proper_subformulas[1]),
+            AST_Node("atom", u),
+        ]
         new_form = AST_Node(
             type=signed_form.parse_tree.type,
             val=signed_form.parse_tree.val,
@@ -192,20 +221,26 @@ def construct_tableau(signed_formula: str, H: HeytingAlgebra):
         elif isClosed(current_node, H):
             current_node.closed = True
         else:
-            X: Signed_Formula = current_node.signed_form
+            X: Signed_Formula = current_node.signed_formula
             if isAtomic(X.parse_tree):
                 # Check if reversal rule sould be applied
-                if current_node.signed_form.sign == "F":
+                if current_node.signed_formula.sign == "F":
                     if not isinstance(
-                        current_node.signed_form.parse_tree.proper_subformulas[0],
+                        current_node.signed_formula.parse_tree.proper_subformulas[0],
                         TruthValue,
                     ):
                         ApplyFleq(current_node, q, H)
+                    elif not isinstance(
+                        current_node.signed_formula.parse_tree.proper_subformulas[1],
+                        TruthValue,
+                    ):
+                        ApplyFgeq(current_node, q, H)
+                continue
     return
 
 
 if __name__ == "__main__":
-    expression = "a -> b"
+    expression = "p -> 0"
     signed_form = Signed_Formula("F", parse_expression(expression))
 
     bot = TruthValue("0")
@@ -230,3 +265,4 @@ if __name__ == "__main__":
     }
     ha = HeytingAlgebra({bot, a, b, top}, meetOp=meetOp)
     construct_tableau(signed_form, ha)
+    print("done")

@@ -143,8 +143,11 @@ def forkOpenBranches(node: Tableau_Node, children: list[Tableau_Node], q: deque)
         children_copy = copy.deepcopy(children)
         for c in children_copy:
             c.parent = node
+            curr = [c]
+            while curr:
+                q.appendleft(curr[0])
+                curr = curr[0].children
         node.children = children_copy
-        q.extendleft(children_copy)
         return
     for child in node.children:
         forkOpenBranches(child, children, q)
@@ -206,9 +209,9 @@ def ApplyFgeq(curr: Tableau_Node, q: deque[Tableau_Node], H: HeytingAlgebra):
     forkOpenBranches(curr, new_nodes, q)
 
 
-def construct_tableau(signed_formula: str, H: HeytingAlgebra):
+def construct_tableau(input_signed_formula: str, H: HeytingAlgebra):
     root = Tableau_Node(
-        world=gen.get_new_symbol(), relation=set(), signed_formula=signed_formula
+        world=gen.get_new_symbol(), relation=set(), signed_formula=input_signed_formula
     )
     tableau = Tableau(root)
     q = deque()
@@ -222,26 +225,75 @@ def construct_tableau(signed_formula: str, H: HeytingAlgebra):
             current_node.closed = True
         else:
             X: Signed_Formula = current_node.signed_formula
+            # ATOMIC
             if isAtomic(X.parse_tree):
                 # Check if reversal rule sould be applied
-                if current_node.signed_formula.sign == "F":
+                if X.sign == "F":
                     if not isinstance(
-                        current_node.signed_formula.parse_tree.proper_subformulas[0],
+                        X.parse_tree.proper_subformulas[0],
                         TruthValue,
                     ):
                         ApplyFleq(current_node, q, H)
                     elif not isinstance(
-                        current_node.signed_formula.parse_tree.proper_subformulas[1],
+                        X.parse_tree.proper_subformulas[1],
                         TruthValue,
                     ):
                         ApplyFgeq(current_node, q, H)
                 continue
+            # T\land
+            elif (
+                X.sign == "T"
+                and isinstance(X.parse_tree.proper_subformulas[0].val, TruthValue)
+                and X.parse_tree.proper_subformulas[1].val == "&"
+            ):
+                phi: AST_Node = copy.deepcopy(
+                    X.parse_tree.proper_subformulas[1].proper_subformulas[0]
+                )
+                psi: AST_Node = copy.deepcopy(
+                    X.parse_tree.proper_subformulas[1].proper_subformulas[1]
+                )
+                proper_subformulas = [
+                    X.parse_tree.proper_subformulas[0],
+                    phi,
+                ]
+                new_form = AST_Node(
+                    type=X.parse_tree.type,
+                    val=X.parse_tree.val,
+                    proper_subformulas=proper_subformulas,
+                )
+                new_signed_formula = Signed_Formula(sign="T", parse_tree=new_form)
+                nr = Tableau_Node(
+                    world=current_node.world,
+                    relation=current_node.relation,
+                    parent=None,
+                    signed_formula=new_signed_formula,
+                )
+
+                proper_subformulas = [
+                    X.parse_tree.proper_subformulas[0],
+                    psi,
+                ]
+                new_form = AST_Node(
+                    type=X.parse_tree.type,
+                    val=X.parse_tree.val,
+                    proper_subformulas=proper_subformulas,
+                )
+                new_signed_formula = Signed_Formula(sign="T", parse_tree=new_form)
+                nl = Tableau_Node(
+                    world=current_node.world,
+                    relation=current_node.relation,
+                    parent=nr,
+                    signed_formula=new_signed_formula,
+                )
+                nr.children = [nl]
+                forkOpenBranches(current_node, [nr], q)
+
     return
 
 
 if __name__ == "__main__":
-    expression = "p -> 0"
-    signed_form = Signed_Formula("F", parse_expression(expression))
+    expression = "a -> (p & q)"
+    signed_form = Signed_Formula("T", parse_expression(expression))
 
     bot = TruthValue("0")
     top = TruthValue("1")

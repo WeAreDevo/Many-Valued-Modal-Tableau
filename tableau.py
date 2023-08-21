@@ -230,12 +230,12 @@ def construct_tableau(input_signed_formula: str, H: HeytingAlgebra):
                 # Check if reversal rule sould be applied
                 if X.sign == "F":
                     if not isinstance(
-                        X.parse_tree.proper_subformulas[0],
+                        X.parse_tree.proper_subformulas[0].val,
                         TruthValue,
                     ):
                         ApplyFleq(current_node, q, H)
                     elif not isinstance(
-                        X.parse_tree.proper_subformulas[1],
+                        X.parse_tree.proper_subformulas[1].val,
                         TruthValue,
                     ):
                         ApplyFgeq(current_node, q, H)
@@ -292,8 +292,8 @@ def construct_tableau(input_signed_formula: str, H: HeytingAlgebra):
 
 
 if __name__ == "__main__":
-    expression = "a -> (p & q)"
-    signed_form = Signed_Formula("T", parse_expression(expression))
+    expression = "1 -> p"
+    signed_form = Signed_Formula("F", parse_expression(expression))
 
     bot = TruthValue("0")
     top = TruthValue("1")

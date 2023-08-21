@@ -58,6 +58,9 @@ class Poset:
 class TruthValue:
     value: str
 
+    def __str__(self) -> str:
+        return str(self.value)
+
 
 class HeytingAlgebra:
     def __init__(

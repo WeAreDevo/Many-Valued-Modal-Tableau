@@ -10,6 +10,7 @@ class AST_Node:
         else:
             self.proper_subformulas = []
         self.val = val
+        self.expression = str(self)
 
     def __eq__(self, other):
         return (
@@ -17,6 +18,14 @@ class AST_Node:
             and self.val == other.val
             and self.proper_subformulas == other.children
         )
+
+    def __str__(self) -> str:
+        if self.type == "atom":
+            return str(self.val)
+        if self.type == "unop":
+            return f"{self.val}{str(self.proper_subformulas[0])}"
+        if self.type == "binop":
+            return f"({str(self.proper_subformulas[0])} {self.val} {str(self.proper_subformulas[1])})"
 
 
 tokens = ("VAR", "BOX", "DIAMOND", "AND", "OR", "IMPLIES", "LPAREN", "RPAREN", "VALUE")
@@ -94,8 +103,9 @@ def parse_expression(expression):
 
 
 if __name__ == "__main__":
-    expression = "[]p & p | q ->a"
+    expression = "[](p & q) | q ->a"
     parsed_formula1 = parse_expression(expression)
+    s = str(parsed_formula1)
     parsed_formula2 = parse_expression("((([]p) & p)  | q) ->a")
 
     from PrettyPrint import PrettyPrintTree

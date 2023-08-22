@@ -32,6 +32,9 @@ class Signed_Formula:
     sign: str
     parse_tree: AST_Node
 
+    def __str__(self) -> str:
+        return f"{self.sign} {str(self.parse_tree)}"
+
 
 class Tableau_Node:
     def __init__(
@@ -181,6 +184,36 @@ def ApplyFleq(curr: Tableau_Node, q: deque[Tableau_Node], H: HeytingAlgebra):
     forkOpenBranches(curr, new_nodes, q)
 
 
+def ApplyTleq(curr: Tableau_Node, q: deque[Tableau_Node], H: HeytingAlgebra):
+    signed_form: Signed_Formula = curr.signed_formula
+    X = {
+        u
+        for u in H.elements
+        if not H.poset.leq(u, signed_form.parse_tree.proper_subformulas[1].val)
+    }
+    new_nodes = []
+    for u in H.poset.minimals(X):
+        proper_subformulas = [
+            AST_Node("atom", u),
+            copy.deepcopy(signed_form.parse_tree.proper_subformulas[0]),
+        ]
+        new_form = AST_Node(
+            type=signed_form.parse_tree.type,
+            val=signed_form.parse_tree.val,
+            proper_subformulas=proper_subformulas,
+        )
+        new_signed_formula = Signed_Formula(sign="F", parse_tree=new_form)
+        n = Tableau_Node(
+            world=curr.world,
+            relation=copy.copy(curr.relation),
+            signed_formula=new_signed_formula,
+        )
+        new_nodes.append(n)
+    for i in range(len(new_nodes) - 1):
+        new_nodes[i].children = [new_nodes[i + 1]]
+    forkOpenBranches(curr, [new_nodes[0]], q)
+
+
 def ApplyFgeq(curr: Tableau_Node, q: deque[Tableau_Node], H: HeytingAlgebra):
     signed_form: Signed_Formula = curr.signed_formula
     X = {
@@ -225,6 +258,7 @@ def construct_tableau(input_signed_formula: str, H: HeytingAlgebra):
             current_node.closed = True
         else:
             X: Signed_Formula = current_node.signed_formula
+
             # ATOMIC
             if isAtomic(X.parse_tree):
                 # Check if reversal rule sould be applied
@@ -240,7 +274,16 @@ def construct_tableau(input_signed_formula: str, H: HeytingAlgebra):
                     ):
                         ApplyFgeq(current_node, q, H)
                 continue
+
             # T\land
+            # Check if reversal should be applied first
+            elif (
+                X.sign == "F"
+                and isinstance(X.parse_tree.proper_subformulas[1].val, TruthValue)
+                and X.parse_tree.proper_subformulas[0].val == "&"
+            ):
+                ApplyFleq(current_node, q, H)
+                continue
             elif (
                 X.sign == "T"
                 and isinstance(X.parse_tree.proper_subformulas[0].val, TruthValue)
@@ -262,7 +305,7 @@ def construct_tableau(input_signed_formula: str, H: HeytingAlgebra):
                     proper_subformulas=proper_subformulas,
                 )
                 new_signed_formula = Signed_Formula(sign="T", parse_tree=new_form)
-                nr = Tableau_Node(
+                nl = Tableau_Node(
                     world=current_node.world,
                     relation=current_node.relation,
                     parent=None,
@@ -279,21 +322,74 @@ def construct_tableau(input_signed_formula: str, H: HeytingAlgebra):
                     proper_subformulas=proper_subformulas,
                 )
                 new_signed_formula = Signed_Formula(sign="T", parse_tree=new_form)
+                nr = Tableau_Node(
+                    world=current_node.world,
+                    relation=current_node.relation,
+                    parent=nl,
+                    signed_formula=new_signed_formula,
+                )
+                nl.children = [nr]
+                forkOpenBranches(current_node, [nl], q)
+
+            # F\land TODO
+            # Check if reversal should be applied first
+            elif (
+                X.sign == "T"
+                and isinstance(X.parse_tree.proper_subformulas[1].val, TruthValue)
+                and X.parse_tree.proper_subformulas[0].val == "&"
+            ):
+                ApplyTleq(current_node, q, H)
+                continue
+            elif (
+                X.sign == "F"
+                and isinstance(X.parse_tree.proper_subformulas[0].val, TruthValue)
+                and X.parse_tree.proper_subformulas[1].val == "&"
+            ):
+                phi: AST_Node = copy.deepcopy(
+                    X.parse_tree.proper_subformulas[1].proper_subformulas[0]
+                )
+                psi: AST_Node = copy.deepcopy(
+                    X.parse_tree.proper_subformulas[1].proper_subformulas[1]
+                )
+                proper_subformulas = [
+                    X.parse_tree.proper_subformulas[0],
+                    phi,
+                ]
+                new_form = AST_Node(
+                    type=X.parse_tree.type,
+                    val=X.parse_tree.val,
+                    proper_subformulas=proper_subformulas,
+                )
+                new_signed_formula = Signed_Formula(sign="F", parse_tree=new_form)
                 nl = Tableau_Node(
                     world=current_node.world,
                     relation=current_node.relation,
-                    parent=nr,
                     signed_formula=new_signed_formula,
                 )
-                nr.children = [nl]
-                forkOpenBranches(current_node, [nr], q)
 
-    return
+                proper_subformulas = [
+                    X.parse_tree.proper_subformulas[0],
+                    psi,
+                ]
+                new_form = AST_Node(
+                    type=X.parse_tree.type,
+                    val=X.parse_tree.val,
+                    proper_subformulas=proper_subformulas,
+                )
+                new_signed_formula = Signed_Formula(sign="F", parse_tree=new_form)
+                nr = Tableau_Node(
+                    world=current_node.world,
+                    relation=current_node.relation,
+                    signed_formula=new_signed_formula,
+                )
+                forkOpenBranches(current_node, [nl, nr], q)
+
+    return tableau
 
 
 if __name__ == "__main__":
-    expression = "1 -> p"
-    signed_form = Signed_Formula("F", parse_expression(expression))
+    expression = "(p & q) -> 0"
+    signed_form = Signed_Formula("T", parse_expression(expression))
 
     bot = TruthValue("0")
     top = TruthValue("1")
@@ -316,5 +412,19 @@ if __name__ == "__main__":
         },
     }
     ha = HeytingAlgebra({bot, a, b, top}, meetOp=meetOp)
-    construct_tableau(signed_form, ha)
+    tableau = construct_tableau(signed_form, ha)
     print("done")
+
+    from PrettyPrint import PrettyPrintTree
+
+    pt = PrettyPrintTree(
+        lambda x: x.children,
+        lambda x: str(x.signed_formula),
+        lambda x: f"<{x.world}, {x.relation}>",
+    )
+    pt(tableau.root)
+    # Test deepcopy of nodes. See that children chance and new parents are referenced in new children.
+    # n = Tableau_Node("A", {"AB", "AC"})
+    # n.children = Tableau_Node("A", {"AB", "AC"}, parent=n)
+    # l = [n]
+    # dc = copy.deepcopy(l)

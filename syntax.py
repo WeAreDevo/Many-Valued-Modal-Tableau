@@ -110,7 +110,7 @@ if __name__ == "__main__":
 
     from PrettyPrint import PrettyPrintTree
 
-    pt = PrettyPrintTree(lambda x: x.children, lambda x: x.val)
+    pt = PrettyPrintTree(lambda x: x.proper_subformulas, lambda x: x.val)
     pt(parsed_formula1)
     pt(parsed_formula2)
     print(parsed_formula1 == parsed_formula2)

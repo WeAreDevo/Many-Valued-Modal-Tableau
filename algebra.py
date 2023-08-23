@@ -6,6 +6,7 @@ import functools
 class Poset:
     def __init__(self, elements: set, order=None):
         self.elements = elements
+        self.order = order
         if order == None:
             self.order = defaultdict(set)
         self.topsort = None
@@ -166,7 +167,7 @@ class HeytingAlgebra:
 
         # Now do something with the topological sort?
         t_sort = self.poset.getTopSort()
-        t_sort = reversed(t_sort)
+        t_sort = list(reversed(t_sort))
         order = self.poset.order
         for a in self.elements:
             for b in self.elements:

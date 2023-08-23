@@ -16,7 +16,7 @@ class AST_Node:
         return (
             self.type == other.type
             and self.val == other.val
-            and self.proper_subformulas == other.children
+            and self.proper_subformulas == other.proper_subformulas
         )
 
     def __str__(self) -> str:

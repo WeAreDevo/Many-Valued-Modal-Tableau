@@ -98,7 +98,7 @@ def p_error(p):
 parser = yacc.yacc()
 
 
-def parse_expression(expression):
+def parse_expression(expression) -> AST_Node:
     return parser.parse(expression, lexer=lexer)
 
 

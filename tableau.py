@@ -3,6 +3,7 @@ from syntax import AST_Node, parse_expression
 from algebra import TruthValue, HeytingAlgebra, Poset
 from collections import deque
 import copy
+from PrettyPrint import PrettyPrintTree
 
 
 class UniqueSymbolGenerator:
@@ -110,7 +111,7 @@ def isClosed(node: Tableau_Node, H: HeytingAlgebra):
                 ):
                     return True
             curr = curr.parent
-    # TODO: symmetrical case.
+    # symmetrical case.
     if sign == "F" and isinstance(parse_tree.proper_subformulas[0].val, TruthValue):
         curr = node.parent
         while curr != None:
@@ -126,6 +127,45 @@ def isClosed(node: Tableau_Node, H: HeytingAlgebra):
                 if H.poset.leq(
                     parse_tree.proper_subformulas[0].val,
                     curr.signed_formula.parse_tree.proper_subformulas[0].val,
+                ):
+                    return True
+            curr = curr.parent
+
+    # better \bot5?
+    if sign == "T" and isinstance(parse_tree.proper_subformulas[0].val, TruthValue):
+        curr = node.parent
+        while curr != None:
+            if (
+                curr.world == node.world
+                and curr.signed_formula.sign == "T"
+                and isinstance(
+                    curr.signed_formula.parse_tree.proper_subformulas[1].val, TruthValue
+                )
+                and curr.signed_formula.parse_tree.proper_subformulas[0]
+                == parse_tree.proper_subformulas[1]
+            ):
+                if not H.poset.leq(
+                    parse_tree.proper_subformulas[0].val,
+                    curr.signed_formula.parse_tree.proper_subformulas[1].val,
+                ):
+                    return True
+            curr = curr.parent
+    # symmetrical case.
+    if sign == "T" and isinstance(parse_tree.proper_subformulas[1].val, TruthValue):
+        curr = node.parent
+        while curr != None:
+            if (
+                curr.world == node.world
+                and curr.signed_formula.sign == "T"
+                and isinstance(
+                    curr.signed_formula.parse_tree.proper_subformulas[0].val, TruthValue
+                )
+                and curr.signed_formula.parse_tree.proper_subformulas[1]
+                == parse_tree.proper_subformulas[0]
+            ):
+                if not H.poset.leq(
+                    curr.signed_formula.parse_tree.proper_subformulas[0].val,
+                    parse_tree.proper_subformulas[1].val,
                 ):
                     return True
             curr = curr.parent
@@ -276,7 +316,18 @@ def ApplyFgeq(curr: Tableau_Node, q: deque[Tableau_Node], H: HeytingAlgebra):
     forkOpenBranches(curr, new_nodes, q)
 
 
-def construct_tableau(input_signed_formula: str, H: HeytingAlgebra):
+def update_closed(node: Tableau_Node, H: HeytingAlgebra):
+    if isClosed(node, H):
+        node.closed = True
+        return
+    for child in node.children:
+        update_closed(child, H)
+    if node.children and all(c.closed for c in node.children):
+        node.closed = True
+        return
+
+
+def construct_tableau(input_signed_formula: str, H: HeytingAlgebra, print=True):
     root = Tableau_Node(
         world=gen.get_new_symbol(), relation=set(), signed_formula=input_signed_formula
     )
@@ -284,29 +335,29 @@ def construct_tableau(input_signed_formula: str, H: HeytingAlgebra):
     q = deque()
     q.appendleft(root)
 
-    while not tableau.isClosed() and not len(q) == 0:
+    while not len(q) == 0:
         current_node: Tableau_Node = q.pop()
         if current_node.closed:
             continue
-        elif isClosed(current_node, H):
-            current_node.closed = True
+        # elif isClosed(current_node, H):  # only at end?
+        #     current_node.closed = True
         else:
             X: Signed_Formula = current_node.signed_formula
 
             # ATOMIC
             if isAtomic(X.parse_tree):
                 # Check if reversal rule sould be applied
-                # if X.sign == "F":
-                #     if not isinstance(
-                #         X.parse_tree.proper_subformulas[0].val,
-                #         TruthValue,
-                #     ):
-                #         ApplyFleq(current_node, q, H)
-                #     elif not isinstance(
-                #         X.parse_tree.proper_subformulas[1].val,
-                #         TruthValue,
-                #     ):
-                #         ApplyFgeq(current_node, q, H)
+                if X.sign == "F":
+                    if not isinstance(
+                        X.parse_tree.proper_subformulas[0].val,
+                        TruthValue,
+                    ):
+                        ApplyFleq(current_node, q, H)
+                    elif not isinstance(
+                        X.parse_tree.proper_subformulas[1].val,
+                        TruthValue,
+                    ):
+                        ApplyFgeq(current_node, q, H)
                 continue
 
             # T&
@@ -665,51 +716,66 @@ def construct_tableau(input_signed_formula: str, H: HeytingAlgebra):
                     children.extend([n1, n2])
                 forkOpenBranches(current_node, children, q)
 
+        update_closed(current_node, H)
+    update_closed(tableau.root, H)
+
+    if print:
+        pt = PrettyPrintTree(
+            lambda x: x.children,
+            lambda x: str(x.signed_formula),
+            lambda x: f"<{x.world}, {x.relation}>",
+        )
+        pt(tableau.root)
     return tableau
 
 
+def isValid(phi: str, H: HeytingAlgebra):
+    phi_parsed = parse_expression(expression)
+    bounding_imp = AST_Node(
+        type="binop",
+        val="->",
+        proper_subformulas=[AST_Node(type="atom", val=H.top), phi_parsed],
+    )
+    signed_bounding_imp = Signed_Formula("F", bounding_imp)
+
+    tableau = construct_tableau(signed_bounding_imp, H)
+    return tableau.isClosed()
+
+
 if __name__ == "__main__":
-    # expression = "1 -> (p -> (q -> p))"
-    expression = "a -> (((a -> p) & (1 -> (p -> q))) -> q)"
+    # expression = "(p -> (q -> p))"
+    expression = "(p | (p -> 0))"
+    # expression = "a -> (((a -> p) & (1 -> (p -> q))) -> q)"
+    # expression = "(((a -> p) & (a -> (p -> q))) -> q)"
     signed_form = Signed_Formula("F", parse_expression(expression))
 
     bot = TruthValue("0")
     top = TruthValue("1")
     a = TruthValue("a")
     b = TruthValue("b")
-    # meetOp = {
-    #     bot: {bot: bot, a: bot, b: bot, top: bot},
-    #     a: {bot: bot, a: a, b: bot, top: a},
-    #     b: {
-    #         bot: bot,
-    #         a: bot,
-    #         b: b,
-    #         top: b,
-    #     },
-    #     top: {
-    #         bot: bot,
-    #         a: a,
-    #         b: b,
-    #         top: top,
-    #     },
-    # }
-    # ha = HeytingAlgebra({bot, a, b, top}, meetOp=meetOp)
-    order = {bot: {bot, a, top}, a: {a, top}, top: {top}}
-    p = Poset({bot, a, top}, order=order)
-    ha = HeytingAlgebra({bot, a, top}, poset=p)
-    tableau = construct_tableau(signed_form, ha)
-    print("done")
 
-    from PrettyPrint import PrettyPrintTree
+    # Algebra 1
+    meetOp = {
+        bot: {bot: bot, a: bot, b: bot, top: bot},
+        a: {bot: bot, a: a, b: bot, top: a},
+        b: {
+            bot: bot,
+            a: bot,
+            b: b,
+            top: b,
+        },
+        top: {
+            bot: bot,
+            a: a,
+            b: b,
+            top: top,
+        },
+    }
+    ha = HeytingAlgebra({bot, a, b, top}, meetOp=meetOp)
 
-    pt = PrettyPrintTree(
-        lambda x: x.children,
-        lambda x: str(x.signed_formula),
-        lambda x: f"<{x.world}, {x.relation}>",
-    )
-    pt(tableau.root)
-    # Test deepcopy of nodes. See that children chance and new parents are referenced in new children.
-    # n = Tableau_Node("A", {"AB", "AC"})
-    # n.children = Tableau_Node("A", {"AB", "AC"}, parent=n)
-    # l = [n]
-    # dc = copy.deepcopy(l)
+    # Algebra 2
+    # order = {bot: {bot, a, top}, a: {a, top}, top: {top}}
+    # p = Poset({bot, a, top}, order=order)
+    # ha = HeytingAlgebra({bot, a, top}, poset=p)
+    # tableau = construct_tableau(signed_form, ha)
+    print(f"{expression} is valid: {isValid(expression, ha)}")

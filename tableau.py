@@ -805,6 +805,7 @@ def construct_tableau(input_signed_formula: str, H: HeytingAlgebra, print=True):
                         )
                         S[-1].children = [n]
                         S.append(n)
+                        q.appendleft(n)
 
             # T<>
             # Check if reversal should be applied first
@@ -856,6 +857,116 @@ def construct_tableau(input_signed_formula: str, H: HeytingAlgebra, print=True):
                         )
                         S[-1].children = [n]
                         S.append(n)
+                        q.appendleft(n)
+
+            # F[]
+            # Check if reversal should be applied first
+            elif (
+                X.sign == "T"
+                and isinstance(X.parse_tree.proper_subformulas[1].val, TruthValue)
+                and X.parse_tree.proper_subformulas[0].val == "[]"
+            ):
+                ApplyTleq(current_node, q, H)
+                continue
+            elif (
+                X.sign == "F"
+                and isinstance(X.parse_tree.proper_subformulas[0].val, TruthValue)
+                and X.parse_tree.proper_subformulas[1].val == "[]"
+            ):
+                phi: AST_Node = copy.deepcopy(
+                    X.parse_tree.proper_subformulas[1].proper_subformulas[0]
+                )
+                for S in get_open_branches(current_node):
+                    for t in H.elements:
+                        if H.meet(t, X.parse_tree.proper_subformulas[0].val) == H.bot:
+                            continue
+
+                        proper_subformulas = [
+                            AST_Node(
+                                type="atom",
+                                val=H.meet(
+                                    X.parse_tree.proper_subformulas[0].val,
+                                    t,
+                                ),
+                            ),
+                            phi,
+                        ]
+                        new_signed_formula = Signed_Formula(
+                            sign="F",
+                            parse_tree=AST_Node(
+                                type=X.parse_tree.type,
+                                val=X.parse_tree.val,
+                                proper_subformulas=proper_subformulas,
+                            ),
+                        )
+                        new_world = gen.get_new_symbol()
+                        new_relation = current_node.relation.union(
+                            {f"{current_node.world}#{t.value}#{new_world}"}
+                        )
+                        n = Tableau_Node(
+                            world=new_world,
+                            relation=new_relation,
+                            signed_formula=new_signed_formula,
+                            parent=S[-1],
+                        )
+                        S[-1].children.append(n)
+                        q.append(n)
+
+            # F<>
+            # Check if reversal should be applied first
+            elif (
+                X.sign == "T"
+                and isinstance(X.parse_tree.proper_subformulas[0].val, TruthValue)
+                and X.parse_tree.proper_subformulas[1].val == "<>"
+            ):
+                ApplyTgeq(current_node, q, H)
+                continue
+            elif (
+                X.sign == "F"
+                and isinstance(X.parse_tree.proper_subformulas[1].val, TruthValue)
+                and X.parse_tree.proper_subformulas[0].val == "<>"
+            ):
+                phi: AST_Node = copy.deepcopy(
+                    X.parse_tree.proper_subformulas[0].proper_subformulas[0]
+                )
+                for S in get_open_branches(current_node):
+                    for t in H.elements:
+                        if (
+                            H.implies(t, X.parse_tree.proper_subformulas[1].val)
+                            == H.top
+                        ):
+                            continue
+
+                        proper_subformulas = [
+                            phi,
+                            AST_Node(
+                                type="atom",
+                                val=H.implies(
+                                    t,
+                                    X.parse_tree.proper_subformulas[1].val,
+                                ),
+                            ),
+                        ]
+                        new_signed_formula = Signed_Formula(
+                            sign="F",
+                            parse_tree=AST_Node(
+                                type=X.parse_tree.type,
+                                val=X.parse_tree.val,
+                                proper_subformulas=proper_subformulas,
+                            ),
+                        )
+                        new_world = gen.get_new_symbol()
+                        new_relation = current_node.relation.union(
+                            {f"{current_node.world}#{t.value}#{new_world}"}
+                        )
+                        n = Tableau_Node(
+                            world=new_world,
+                            relation=new_relation,
+                            signed_formula=new_signed_formula,
+                            parent=S[-1],
+                        )
+                        S[-1].children.append(n)
+                        q.append(n)
 
         update_closed(current_node, H)
     update_closed(tableau.root, H)

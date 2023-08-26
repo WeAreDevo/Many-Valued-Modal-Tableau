@@ -352,7 +352,8 @@ def get_open_branches(node: Tableau_Node):
         ancestors.appendleft(curr)
         curr = curr.parent
     if ancestors:
-        branches = [list(b.extendleft(ancestors)) for b in branches]
+        for b in branches:
+            b.extendleft(list(ancestors))
     return branches
 
 
@@ -766,17 +767,17 @@ def construct_tableau(input_signed_formula: str, H: HeytingAlgebra, print=True):
                 X.sign == "T"
                 and isinstance(X.parse_tree.proper_subformulas[0].val, TruthValue)
                 and X.parse_tree.proper_subformulas[1].val == "[]"
-                and not X.parse_tree.proper_subformulas[0].val
-                == H.bot  # Side Condition
+                # TODO: Side condition fine to add?
             ):
                 phi: AST_Node = copy.deepcopy(
                     X.parse_tree.proper_subformulas[1].proper_subformulas[0]
                 )
+                pattern = f"{current_node.world}#(.*)#(.*)"
                 for S in get_open_branches(current_node):
                     for t, world in [
                         (m.group(1), m.group(2))
                         for r in cons(S)
-                        if (m := re.match(r"A#(.*)#(.*)", r))
+                        if (m := re.match(pattern, r))
                     ]:
                         proper_subformulas = [
                             AST_Node(
@@ -787,6 +788,57 @@ def construct_tableau(input_signed_formula: str, H: HeytingAlgebra, print=True):
                                 ),
                             ),
                             phi,
+                        ]
+                        new_signed_formula = Signed_Formula(
+                            sign="T",
+                            parse_tree=AST_Node(
+                                type=X.parse_tree.type,
+                                val=X.parse_tree.val,
+                                proper_subformulas=proper_subformulas,
+                            ),
+                        )
+                        n = Tableau_Node(
+                            world=world,
+                            relation=current_node.relation,
+                            signed_formula=new_signed_formula,
+                            parent=S[-1],
+                        )
+                        S[-1].children = [n]
+                        S.append(n)
+
+            # T<>
+            # Check if reversal should be applied first
+            elif (
+                X.sign == "F"
+                and isinstance(X.parse_tree.proper_subformulas[0].val, TruthValue)
+                and X.parse_tree.proper_subformulas[1].val == "<>"
+            ):
+                ApplyFgeq(current_node, q, H)
+                continue
+            elif (
+                X.sign == "T"
+                and isinstance(X.parse_tree.proper_subformulas[1].val, TruthValue)
+                and X.parse_tree.proper_subformulas[0].val == "<>"
+            ):
+                phi: AST_Node = copy.deepcopy(
+                    X.parse_tree.proper_subformulas[0].proper_subformulas[0]
+                )
+                pattern = f"{current_node.world}#(.*)#(.*)"
+                for S in get_open_branches(current_node):
+                    for t, world in [
+                        (m.group(1), m.group(2))
+                        for r in cons(S)
+                        if (m := re.match(pattern, r))
+                    ]:
+                        proper_subformulas = [
+                            phi,
+                            AST_Node(
+                                type="atom",
+                                val=H.implies(
+                                    TruthValue(t),
+                                    X.parse_tree.proper_subformulas[1].val,
+                                ),
+                            ),
                         ]
                         new_signed_formula = Signed_Formula(
                             sign="T",
@@ -819,10 +871,10 @@ def construct_tableau(input_signed_formula: str, H: HeytingAlgebra, print=True):
 
 
 def isValid(phi: str, H: HeytingAlgebra):
-    phi_parsed = parse_expression(expression)
+    phi_parsed = parse_expression(phi)
     bounding_imp = AST_Node(
         type="binop",
-        val="->",
+        val="[]p -> 0",
         proper_subformulas=[AST_Node(type="atom", val=H.top), phi_parsed],
     )
     signed_bounding_imp = Signed_Formula("F", bounding_imp)
@@ -833,7 +885,7 @@ def isValid(phi: str, H: HeytingAlgebra):
 
 if __name__ == "__main__":
     # expression = "(p -> (q -> p))"
-    expression = "(q -> p)"
+    expression = "[]p -> 0"
     # expression = "(p | (p -> 0))"
     # expression = "a -> (((a -> p) & (1 -> (p -> q))) -> q)"
     # expression = "(((a -> p) & (a -> (p -> q))) -> q)"
@@ -867,5 +919,5 @@ if __name__ == "__main__":
     # order = {bot: {bot, a, top}, a: {a, top}, top: {top}}
     # p = Poset({bot, a, top}, order=order)
     # ha = HeytingAlgebra({bot, a, top}, poset=p)
-    # tableau = construct_tableau(signed_form, ha)
-    print(f"{expression} is valid: {isValid(expression, ha)}")
+    tableau = construct_tableau(signed_form, ha)
+    # print(f"{expression} is valid: {isValid(expression, ha)}")

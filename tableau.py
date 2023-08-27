@@ -265,7 +265,7 @@ def ApplyTgeq(curr: Tableau_Node, q: deque[Tableau_Node], H: HeytingAlgebra):
     X = {
         t
         for t in H.elements
-        if not H.poset.leq(signed_form.parse_tree.proper_subformulas[1].val, t)
+        if not H.poset.leq(signed_form.parse_tree.proper_subformulas[0].val, t)
     }
     new_nodes = []
     for t in H.poset.maximals(X):
@@ -333,9 +333,9 @@ def get_open_branches(node: Tableau_Node):
     branches = []
 
     def dfs(n: Tableau_Node, current_path: deque[Tableau_Node]):
+        current_path.append(n)
         if n.closed:
             return
-        current_path.append(n)
 
         if not n.children:
             branches.append(current_path.copy())
@@ -363,6 +363,106 @@ def worlds(S: list[Tableau_Node]):
 
 def cons(S: list[Tableau_Node]):
     return functools.reduce(lambda x, y: x.union(y), [n.relation for n in S])
+
+
+def ApplyTbox(current_node, q, H):
+    X: Signed_Formula = current_node.signed_formula
+    phi: AST_Node = copy.deepcopy(
+        X.parse_tree.proper_subformulas[1].proper_subformulas[0]
+    )
+    pattern = f"{current_node.world}#(.*)#(.*)"
+    for S in get_open_branches(current_node):
+        for t, world in [
+            (m.group(1), m.group(2)) for r in cons(S) if (m := re.match(pattern, r))
+        ]:
+            proper_subformulas = [
+                AST_Node(
+                    type="atom",
+                    val=H.meet(
+                        X.parse_tree.proper_subformulas[0].val,
+                        TruthValue(t),
+                    ),
+                ),
+                phi,
+            ]
+            new_signed_formula = Signed_Formula(
+                sign="T",
+                parse_tree=AST_Node(
+                    type=X.parse_tree.type,
+                    val=X.parse_tree.val,
+                    proper_subformulas=proper_subformulas,
+                ),
+            )
+            n = Tableau_Node(
+                world=world,
+                relation=current_node.relation,
+                signed_formula=new_signed_formula,
+                parent=S[-1],
+            )
+            S[-1].children = [n]
+            S.append(n)
+            q.appendleft(n)
+
+
+def ApplyTdiamond(current_node, q, H):
+    X: Signed_Formula = current_node.signed_formula
+    phi: AST_Node = copy.deepcopy(
+        X.parse_tree.proper_subformulas[0].proper_subformulas[0]
+    )
+    pattern = f"{current_node.world}#(.*)#(.*)"
+    for S in get_open_branches(current_node):
+        for t, world in [
+            (m.group(1), m.group(2)) for r in cons(S) if (m := re.match(pattern, r))
+        ]:
+            proper_subformulas = [
+                phi,
+                AST_Node(
+                    type="atom",
+                    val=H.implies(
+                        TruthValue(t),
+                        X.parse_tree.proper_subformulas[1].val,
+                    ),
+                ),
+            ]
+            new_signed_formula = Signed_Formula(
+                sign="T",
+                parse_tree=AST_Node(
+                    type=X.parse_tree.type,
+                    val=X.parse_tree.val,
+                    proper_subformulas=proper_subformulas,
+                ),
+            )
+            n = Tableau_Node(
+                world=world,
+                relation=current_node.relation,
+                signed_formula=new_signed_formula,
+                parent=S[-1],
+            )
+            S[-1].children = [n]
+            S.append(n)
+            q.appendleft(n)
+
+
+def reactivate(current_node, q, H):
+    pred = current_node.parent
+    while pred:
+        if pred.world == current_node.world:
+            if (
+                isinstance(
+                    pred.signed_formula.parse_tree.proper_subformulas[0].val,
+                    TruthValue,
+                )
+                and pred.signed_formula.parse_tree.proper_subformulas[1].val == "[]"
+            ):
+                ApplyTbox(pred, q, H)
+            elif (
+                isinstance(
+                    pred.signed_formula.parse_tree.proper_subformulas[1].val,
+                    TruthValue,
+                )
+                and pred.signed_formula.parse_tree.proper_subformulas[0].val == "<>"
+            ):
+                ApplyTdiamond(pred, q, H)
 
 
 def construct_tableau(input_signed_formula: str, H: HeytingAlgebra, print=True):
@@ -769,43 +869,7 @@ def construct_tableau(input_signed_formula: str, H: HeytingAlgebra, print=True):
                 and X.parse_tree.proper_subformulas[1].val == "[]"
                 # TODO: Side condition fine to add?
             ):
-                phi: AST_Node = copy.deepcopy(
-                    X.parse_tree.proper_subformulas[1].proper_subformulas[0]
-                )
-                pattern = f"{current_node.world}#(.*)#(.*)"
-                for S in get_open_branches(current_node):
-                    for t, world in [
-                        (m.group(1), m.group(2))
-                        for r in cons(S)
-                        if (m := re.match(pattern, r))
-                    ]:
-                        proper_subformulas = [
-                            AST_Node(
-                                type="atom",
-                                val=H.meet(
-                                    X.parse_tree.proper_subformulas[0].val,
-                                    TruthValue(t),
-                                ),
-                            ),
-                            phi,
-                        ]
-                        new_signed_formula = Signed_Formula(
-                            sign="T",
-                            parse_tree=AST_Node(
-                                type=X.parse_tree.type,
-                                val=X.parse_tree.val,
-                                proper_subformulas=proper_subformulas,
-                            ),
-                        )
-                        n = Tableau_Node(
-                            world=world,
-                            relation=current_node.relation,
-                            signed_formula=new_signed_formula,
-                            parent=S[-1],
-                        )
-                        S[-1].children = [n]
-                        S.append(n)
-                        q.appendleft(n)
+                ApplyTbox(current_node, q, H)
 
             # T<>
             # Check if reversal should be applied first
@@ -821,43 +885,7 @@ def construct_tableau(input_signed_formula: str, H: HeytingAlgebra, print=True):
                 and isinstance(X.parse_tree.proper_subformulas[1].val, TruthValue)
                 and X.parse_tree.proper_subformulas[0].val == "<>"
             ):
-                phi: AST_Node = copy.deepcopy(
-                    X.parse_tree.proper_subformulas[0].proper_subformulas[0]
-                )
-                pattern = f"{current_node.world}#(.*)#(.*)"
-                for S in get_open_branches(current_node):
-                    for t, world in [
-                        (m.group(1), m.group(2))
-                        for r in cons(S)
-                        if (m := re.match(pattern, r))
-                    ]:
-                        proper_subformulas = [
-                            phi,
-                            AST_Node(
-                                type="atom",
-                                val=H.implies(
-                                    TruthValue(t),
-                                    X.parse_tree.proper_subformulas[1].val,
-                                ),
-                            ),
-                        ]
-                        new_signed_formula = Signed_Formula(
-                            sign="T",
-                            parse_tree=AST_Node(
-                                type=X.parse_tree.type,
-                                val=X.parse_tree.val,
-                                proper_subformulas=proper_subformulas,
-                            ),
-                        )
-                        n = Tableau_Node(
-                            world=world,
-                            relation=current_node.relation,
-                            signed_formula=new_signed_formula,
-                            parent=S[-1],
-                        )
-                        S[-1].children = [n]
-                        S.append(n)
-                        q.appendleft(n)
+                ApplyTdiamond(current_node, q, H)
 
             # F[]
             # Check if reversal should be applied first
@@ -911,6 +939,7 @@ def construct_tableau(input_signed_formula: str, H: HeytingAlgebra, print=True):
                         )
                         S[-1].children.append(n)
                         q.append(n)
+                reactivate(current_node, q, H)
 
             # F<>
             # Check if reversal should be applied first
@@ -967,6 +996,7 @@ def construct_tableau(input_signed_formula: str, H: HeytingAlgebra, print=True):
                         )
                         S[-1].children.append(n)
                         q.append(n)
+                reactivate(current_node, q, H)
 
         update_closed(current_node, H)
     update_closed(tableau.root, H)
@@ -985,7 +1015,7 @@ def isValid(phi: str, H: HeytingAlgebra):
     phi_parsed = parse_expression(phi)
     bounding_imp = AST_Node(
         type="binop",
-        val="[]p -> 0",
+        val="->",
         proper_subformulas=[AST_Node(type="atom", val=H.top), phi_parsed],
     )
     signed_bounding_imp = Signed_Formula("F", bounding_imp)
@@ -996,7 +1026,8 @@ def isValid(phi: str, H: HeytingAlgebra):
 
 if __name__ == "__main__":
     # expression = "(p -> (q -> p))"
-    expression = "[]p -> 0"
+    # expression = "[](p -> q) -> ([]p -> []q)"
+    expression = "a -> (((a -> <>p) & (1 -> []q)) -> <>(p & q))"
     # expression = "(p | (p -> 0))"
     # expression = "a -> (((a -> p) & (1 -> (p -> q))) -> q)"
     # expression = "(((a -> p) & (a -> (p -> q))) -> q)"
@@ -1008,27 +1039,28 @@ if __name__ == "__main__":
     b = TruthValue("b")
 
     # Algebra 1
-    meetOp = {
-        bot: {bot: bot, a: bot, b: bot, top: bot},
-        a: {bot: bot, a: a, b: bot, top: a},
-        b: {
-            bot: bot,
-            a: bot,
-            b: b,
-            top: b,
-        },
-        top: {
-            bot: bot,
-            a: a,
-            b: b,
-            top: top,
-        },
-    }
-    ha = HeytingAlgebra({bot, a, b, top}, meetOp=meetOp)
+    # meetOp = {
+    #     bot: {bot: bot, a: bot, b: bot, top: bot},
+    #     a: {bot: bot, a: a, b: bot, top: a},
+    #     b: {
+    #         bot: bot,
+    #         a: bot,
+    #         b: b,
+    #         top: b,
+    #     },
+    #     top: {
+    #         bot: bot,
+    #         a: a,
+    #         b: b,
+    #         top: top,
+    #     },
+    # }
+    # ha = HeytingAlgebra({bot, a, b, top}, meetOp=meetOp)
 
     # Algebra 2
-    # order = {bot: {bot, a, top}, a: {a, top}, top: {top}}
-    # p = Poset({bot, a, top}, order=order)
-    # ha = HeytingAlgebra({bot, a, top}, poset=p)
+    order = {bot: {bot, a, top}, a: {a, top}, top: {top}}
+    p = Poset({bot, a, top}, order=order)
+    ha = HeytingAlgebra({bot, a, top}, poset=p)
     tableau = construct_tableau(signed_form, ha)
     # print(f"{expression} is valid: {isValid(expression, ha)}")
+    pass

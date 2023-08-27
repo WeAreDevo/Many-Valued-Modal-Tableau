@@ -463,6 +463,7 @@ def reactivate(current_node, q, H):
                 and pred.signed_formula.parse_tree.proper_subformulas[0].val == "<>"
             ):
                 ApplyTdiamond(pred, q, H)
+        pred = pred.parent
 
 
 def construct_tableau(input_signed_formula: str, H: HeytingAlgebra, print=True):
@@ -485,17 +486,17 @@ def construct_tableau(input_signed_formula: str, H: HeytingAlgebra, print=True):
             # ATOMIC
             if isAtomic(X.parse_tree):
                 # Check if reversal rule sould be applied
-                # if X.sign == "F":
-                #     if not isinstance(
-                #         X.parse_tree.proper_subformulas[0].val,
-                #         TruthValue,
-                #     ):
-                #         ApplyFleq(current_node, q, H)
-                #     elif not isinstance(
-                #         X.parse_tree.proper_subformulas[1].val,
-                #         TruthValue,
-                #     ):
-                #         ApplyFgeq(current_node, q, H)
+                if X.sign == "F":
+                    if not isinstance(
+                        X.parse_tree.proper_subformulas[0].val,
+                        TruthValue,
+                    ):
+                        ApplyFleq(current_node, q, H)
+                    elif not isinstance(
+                        X.parse_tree.proper_subformulas[1].val,
+                        TruthValue,
+                    ):
+                        ApplyFgeq(current_node, q, H)
                 continue
 
             # T&
@@ -1028,6 +1029,7 @@ if __name__ == "__main__":
     # expression = "(p -> (q -> p))"
     # expression = "[](p -> q) -> ([]p -> []q)"
     expression = "a -> (((a -> <>p) & (1 -> []q)) -> <>(p & q))"
+    # expression = "[]p -> 0"
     # expression = "(p | (p -> 0))"
     # expression = "a -> (((a -> p) & (1 -> (p -> q))) -> q)"
     # expression = "(((a -> p) & (a -> (p -> q))) -> q)"
@@ -1062,5 +1064,6 @@ if __name__ == "__main__":
     p = Poset({bot, a, top}, order=order)
     ha = HeytingAlgebra({bot, a, top}, poset=p)
     tableau = construct_tableau(signed_form, ha)
+    print(tableau.isClosed())
     # print(f"{expression} is valid: {isValid(expression, ha)}")
     pass

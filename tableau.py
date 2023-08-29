@@ -466,7 +466,9 @@ def reactivate(current_node, q, H):
         pred = pred.parent
 
 
-def construct_tableau(input_signed_formula: str, H: HeytingAlgebra, print=True):
+def construct_tableau(
+    input_signed_formula: Signed_Formula, H: HeytingAlgebra, print=True
+):
     root = Tableau_Node(
         world=gen.get_new_symbol(), relation=set(), signed_formula=input_signed_formula
     )
@@ -1025,11 +1027,69 @@ def isValid(phi: str, H: HeytingAlgebra):
     return tableau.isClosed()
 
 
+def construct_counter_model(formula: str, H: HeytingAlgebra, tableau: Tableau = None):
+    formula_parsed = parse_expression(formula)
+    bounding_imp = AST_Node(
+        type="binop",
+        val="->",
+        proper_subformulas=[AST_Node(type="atom", val=H.top), formula_parsed],
+    )
+    signed_bounding_imp = Signed_Formula("F", bounding_imp)
+    if not tableau:
+        tableau = construct_tableau(signed_bounding_imp, H)
+    if tableau.isClosed():
+        print("Tableau is closed")
+        return
+    open_branches = get_open_branches(tableau.root)
+    if not open_branches:
+        raise Exception("No open branches")
+    S = open_branches[0]
+    W = worlds(S)
+    R_tmp = cons(S)
+    prop_vars = re.findall(r"[p-z]\d*", formula)
+    valuation = {w: {p: None for p in prop_vars} for w in W}
+
+    def get_bounds(S: list[Tableau_Node], prop_var: str, world: str):
+        lbs = []
+        ubs = []
+        for s in S:
+            if (
+                s.signed_formula.parse_tree.proper_subformulas[1].val == prop_var
+                and s.world == world
+                and s.signed_formula.sign == "T"
+                and isinstance(
+                    s.signed_formula.parse_tree.proper_subformulas[0].val, TruthValue
+                )
+            ):
+                lbs.append(s.signed_formula.parse_tree.proper_subformulas[0].val)
+            if (
+                s.signed_formula.parse_tree.proper_subformulas[0].val == prop_var
+                and s.world == world
+                and s.signed_formula.sign == "T"
+                and isinstance(
+                    s.signed_formula.parse_tree.proper_subformulas[1].val, TruthValue
+                )
+            ):
+                ubs.append(s.signed_formula.parse_tree.proper_subformulas[1].val)
+
+        return (lbs, ubs)
+
+    for w in W:
+        for p in prop_vars:
+            lbs, _ = get_bounds(S, p, w)
+            sup = functools.reduce(
+                H.join,
+                lbs,
+                H.bot,
+            )
+            valuation[w][p] = sup
+
+
 if __name__ == "__main__":
     # expression = "(p -> (q -> p))"
     # expression = "[](p -> q) -> ([]p -> []q)"
-    expression = "a -> (((a -> <>p) & (1 -> []q)) -> <>(p & q))"
-    # expression = "[]p -> 0"
+    # expression = "a -> (((a -> <>p) & (1 -> []q)) -> <>(p & q))"
+    expression = "[]p -> 0"
     # expression = "(p | (p -> 0))"
     # expression = "a -> (((a -> p) & (1 -> (p -> q))) -> q)"
     # expression = "(((a -> p) & (a -> (p -> q))) -> q)"
@@ -1063,7 +1123,7 @@ if __name__ == "__main__":
     order = {bot: {bot, a, top}, a: {a, top}, top: {top}}
     p = Poset({bot, a, top}, order=order)
     ha = HeytingAlgebra({bot, a, top}, poset=p)
-    tableau = construct_tableau(signed_form, ha)
-    print(tableau.isClosed())
+    # tableau = construct_tableau(signed_form, ha)
+    construct_counter_model(expression, ha)
     # print(f"{expression} is valid: {isValid(expression, ha)}")
     pass

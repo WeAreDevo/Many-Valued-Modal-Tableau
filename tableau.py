@@ -446,7 +446,7 @@ def ApplyTdiamond(current_node, q, H):
 def reactivate(current_node, q, H):
     pred = current_node.parent
     while pred:
-        if pred.world == current_node.world:
+        if pred.world == current_node.world and pred.signed_formula.sign == "T":
             if (
                 isinstance(
                     pred.signed_formula.parse_tree.proper_subformulas[0].val,
@@ -1082,23 +1082,68 @@ def construct_counter_model(formula: str, H: HeytingAlgebra, tableau: Tableau = 
                 lbs,
                 H.bot,
             )
-            valuation[w][p] = sup
+            valuation[w][p] = sup.value
 
-    R = {u: {v: H.bot for v in W} for u in W}
+    R = {u: {v: H.bot.value for v in W} for u in W}
     pattern = f"(.*)#(.*)#(.*)"
     for u, t, v in [
         (m.group(1), m.group(2), m.group(3))
-        for r in cons(S)
+        for r in R_tmp
         if (m := re.match(pattern, r))
     ]:
         R[u][v] = t
+
+    return (W, R, valuation)
+
+
+import networkx as nx
+import matplotlib.pyplot as plt
+
+
+def visualize_model(
+    M: tuple[set[str], dict[str, dict[str, str]], dict[str, dict[str, str]]]
+):
+    G = nx.DiGraph()
+    edges = M[1]
+
+    # adding edges with weights
+    for node, neighbours in edges.items():
+        for neighbour, weight in neighbours.items():
+            G.add_edge(node, neighbour, weight=weight)
+
+    display_edges = [
+        (u, v) for (u, v, d) in G.edges(data=True) if not d["weight"] == "0"
+    ]
+
+    pos = nx.spring_layout(G)
+    # nodes
+    nx.draw_networkx_nodes(G, pos, node_size=700)
+    for node, (x, y) in pos.items():
+        plt.text(x, y, str(M[2][node]), fontsize=12, ha="right")
+
+    # edges
+    nx.draw_networkx_edges(G, pos, edgelist=display_edges, width=3)
+
+    # node labels
+    nx.draw_networkx_labels(G, pos, font_size=20, font_family="sans-serif")
+    # edge weight labels
+    edge_labels = nx.get_edge_attributes(G, "weight")
+    nx.draw_networkx_edge_labels(G, pos, edge_labels)
+
+    ax = plt.gca()
+    ax.margins(0.08)
+    plt.axis("off")
+    plt.tight_layout()
+    plt.show()
+
+    plt.show()
 
 
 if __name__ == "__main__":
     # expression = "(p -> (q -> p))"
     # expression = "[](p -> q) -> ([]p -> []q)"
     # expression = "a -> (((a -> <>p) & (1 -> []q)) -> <>(p & q))"
-    expression = "[]p -> 0"
+    expression = "<>p -> []p"
     # expression = "(p | (p -> 0))"
     # expression = "a -> (((a -> p) & (1 -> (p -> q))) -> q)"
     # expression = "(((a -> p) & (a -> (p -> q))) -> q)"
@@ -1133,6 +1178,7 @@ if __name__ == "__main__":
     p = Poset({bot, a, top}, order=order)
     ha = HeytingAlgebra({bot, a, top}, poset=p)
     # tableau = construct_tableau(signed_form, ha)
-    construct_counter_model(expression, ha)
+    M = construct_counter_model(expression, ha)
+    visualize_model(M)
     # print(f"{expression} is valid: {isValid(expression, ha)}")
     pass

@@ -1047,7 +1047,6 @@ def construct_counter_model(formula: str, H: HeytingAlgebra, tableau: Tableau = 
     W = worlds(S)
     R_tmp = cons(S)
     prop_vars = re.findall(r"[p-z]\d*", formula)
-    valuation = {w: {p: None for p in prop_vars} for w in W}
 
     def get_bounds(S: list[Tableau_Node], prop_var: str, world: str):
         lbs = []
@@ -1074,6 +1073,7 @@ def construct_counter_model(formula: str, H: HeytingAlgebra, tableau: Tableau = 
 
         return (lbs, ubs)
 
+    valuation = {w: {p: None for p in prop_vars} for w in W}
     for w in W:
         for p in prop_vars:
             lbs, _ = get_bounds(S, p, w)
@@ -1083,6 +1083,15 @@ def construct_counter_model(formula: str, H: HeytingAlgebra, tableau: Tableau = 
                 H.bot,
             )
             valuation[w][p] = sup
+
+    R = {u: {v: H.bot for v in W} for u in W}
+    pattern = f"(.*)#(.*)#(.*)"
+    for u, t, v in [
+        (m.group(1), m.group(2), m.group(3))
+        for r in cons(S)
+        if (m := re.match(pattern, r))
+    ]:
+        R[u][v] = t
 
 
 if __name__ == "__main__":

@@ -1093,7 +1093,7 @@ def construct_counter_model(formula: str, H: HeytingAlgebra, tableau: Tableau = 
     ]:
         R[u][v] = t
 
-    return (W, R, valuation)
+    return (H, (W, R, valuation))
 
 
 import networkx as nx
@@ -1101,34 +1101,46 @@ import matplotlib.pyplot as plt
 
 
 def visualize_model(
-    M: tuple[set[str], dict[str, dict[str, str]], dict[str, dict[str, str]]]
+    H_M: tuple[
+        HeytingAlgebra,
+        tuple[set[str], dict[str, dict[str, str]], dict[str, dict[str, str]]],
+    ]
 ):
+    H, M = H_M
     G = nx.DiGraph()
     edges = M[1]
+    edge_labels = {}
 
     # adding edges with weights
     for node, neighbours in edges.items():
         for neighbour, weight in neighbours.items():
-            G.add_edge(node, neighbour, weight=weight)
-
-    display_edges = [
-        (u, v) for (u, v, d) in G.edges(data=True) if not d["weight"] == "0"
-    ]
+            G.add_edge(node, neighbour)
+            if not weight == H.bot.value:
+                edge_labels[(node, neighbour)] = weight
 
     pos = nx.spring_layout(G)
     # nodes
     nx.draw_networkx_nodes(G, pos, node_size=700)
     for node, (x, y) in pos.items():
-        plt.text(x, y, str(M[2][node]), fontsize=12, ha="right")
+        plt.text(
+            x + 0.1,
+            y,
+            str(M[2][node]),
+            fontsize=12,
+            color="green",
+            ha="left",
+            wrap=True,
+        )
 
     # edges
-    nx.draw_networkx_edges(G, pos, edgelist=display_edges, width=3)
+    nx.draw_networkx_edges(G, pos, edgelist=edge_labels.keys(), width=3)
 
     # node labels
     nx.draw_networkx_labels(G, pos, font_size=20, font_family="sans-serif")
     # edge weight labels
-    edge_labels = nx.get_edge_attributes(G, "weight")
-    nx.draw_networkx_edge_labels(G, pos, edge_labels)
+    nx.draw_networkx_edge_labels(
+        G, pos, edge_labels=edge_labels, font_color="red", font_size=12
+    )
 
     ax = plt.gca()
     ax.margins(0.08)
@@ -1136,14 +1148,14 @@ def visualize_model(
     plt.tight_layout()
     plt.show()
 
-    plt.show()
-
 
 if __name__ == "__main__":
     # expression = "(p -> (q -> p))"
     # expression = "[](p -> q) -> ([]p -> []q)"
     # expression = "a -> (((a -> <>p) & (1 -> []q)) -> <>(p & q))"
-    expression = "<>p -> []p"
+    # expression = "<>p -> []p"
+    expression = "[]p -> p"
+    # expression = "p -> []<>p"
     # expression = "(p | (p -> 0))"
     # expression = "a -> (((a -> p) & (1 -> (p -> q))) -> q)"
     # expression = "(((a -> p) & (a -> (p -> q))) -> q)"

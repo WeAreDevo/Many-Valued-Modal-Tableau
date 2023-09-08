@@ -1154,8 +1154,10 @@ if __name__ == "__main__":
     # expression = "[](p -> q) -> ([]p -> []q)"
     # expression = "a -> (((a -> <>p) & (1 -> []q)) -> <>(p & q))"
     # expression = "<>p -> []p"
-    expression = "[]p -> p"
+    # expression = "[]p -> p"
+    # expression = "([]p & <>q) -> <>(p & q)"
     # expression = "p -> []<>p"
+    expression = "(<>p & <>q) -> <>(p & q)"
     # expression = "(p | (p -> 0))"
     # expression = "a -> (((a -> p) & (1 -> (p -> q))) -> q)"
     # expression = "(((a -> p) & (a -> (p -> q))) -> q)"
@@ -1167,28 +1169,29 @@ if __name__ == "__main__":
     b = TruthValue("b")
 
     # Algebra 1
-    # meetOp = {
-    #     bot: {bot: bot, a: bot, b: bot, top: bot},
-    #     a: {bot: bot, a: a, b: bot, top: a},
-    #     b: {
-    #         bot: bot,
-    #         a: bot,
-    #         b: b,
-    #         top: b,
-    #     },
-    #     top: {
-    #         bot: bot,
-    #         a: a,
-    #         b: b,
-    #         top: top,
-    #     },
-    # }
-    # ha = HeytingAlgebra({bot, a, b, top}, meetOp=meetOp)
+    meetOp = {
+        bot: {bot: bot, a: bot, b: bot, top: bot},
+        a: {bot: bot, a: a, b: bot, top: a},
+        b: {
+            bot: bot,
+            a: bot,
+            b: b,
+            top: b,
+        },
+        top: {
+            bot: bot,
+            a: a,
+            b: b,
+            top: top,
+        },
+    }
+    # TODO: check if lattice and distributive
+    ha = HeytingAlgebra({bot, a, b, top}, meetOp=meetOp)
 
     # Algebra 2
-    order = {bot: {bot, a, top}, a: {a, top}, top: {top}}
-    p = Poset({bot, a, top}, order=order)
-    ha = HeytingAlgebra({bot, a, top}, poset=p)
+    # order = {bot: {bot, a, top}, a: {a, top}, top: {top}}
+    # p = Poset({bot, a, top}, order=order)
+    # ha = HeytingAlgebra({bot, a, top}, poset=p)
     # tableau = construct_tableau(signed_form, ha)
     M = construct_counter_model(expression, ha)
     visualize_model(M)

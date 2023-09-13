@@ -43,7 +43,7 @@ t_ignore = " \t"
 
 
 def t_VALUE(t):
-    r"[a-o01]\d*"
+    r"[a-o0-9]\d*"
     t.value = TruthValue(t.value)
     return t
 

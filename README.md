@@ -23,7 +23,7 @@ By default, the class of frames in which validity is checked is the class of all
 ```json
 {
     "elements": ["<t1>","<t2>",...,"<tn>"],
-    "order": {"<t1>": {"<t1_1>",...,"<t1_k1>"}, "<t2>": {"<t2_1>",...,"<t2_k2>"},...,"<tn>": {"<tn_1>",...,"<tn_kn">}},
+    "order": {"<t1>": ["<t1_1>",...,"<t1_k1>"], "<t2>": ["<t2_1>",...,"<t2_k2>"],...,"<tn>": ["<tn_1>",...,"<tn_kn">]},
     "meet": {
             "<t1>": {"<t1>": "<m1_1>", "<t2>": "<m1_2>", ..., "<tn>": "<m1_n>"},
             "<t2>": {"<t1>": "<m2_1>", "<t2>": "<m2_2>", ..., "<tn>": "<m2_n>"},
@@ -55,7 +55,7 @@ For example, a json specification of the three-valued heyting algebra $(\{0,\fra
 ```json
 {
     "elements": ["0","a","1"],
-    "order": {"0": {"0","a","1"}, "a": {"a","1"}, "1": {"1"}},
+    "order": {"0": ["0","a","1"], "a": ["a","1"], "1": ["1"]},
     "meet": {
             "0": {"0": "0", "a": "0", "1": "0"},
             "a": {"0": "0", "a": "a", "1": "a"},
@@ -75,7 +75,7 @@ Only **one** of the `order`, `meet` or `join` fields needs to be specified and t
 ```json
 {
     "elements": ["0","a","b","1"],
-    "order": {"0": {"0","a","b","1"}, "a": {"a","1"}, "b": {"b","1"}, "1": {"1"}}
+    "order": {"0": ["0","a","b","1"], "a": ["a","1"], "b": ["b","1"], "1": ["1"]}
 }
 ```
 

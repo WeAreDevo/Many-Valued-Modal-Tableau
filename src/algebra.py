@@ -40,14 +40,14 @@ class Poset:
 
     def minimals(self, S: set):
         M = set()
-        for x in self.topsort:
+        for x in self.getTopSort():
             if x in S and all(not self.leq(m, x) for m in M):
                 M.add(x)
         return M
 
     def maximals(self, S: set):
         M = set()
-        for x in reversed(self.topsort):
+        for x in reversed(self.getTopSort()):
             if x in S and all(not self.leq(x, m) for m in M):
                 M.add(x)
         return M

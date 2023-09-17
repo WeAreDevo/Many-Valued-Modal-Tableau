@@ -28,12 +28,16 @@ def read_algebra(file_path: str):
         poset = algebra.Poset(elements=elements, order=order)
     if "meet" in spec:
         meet = {
-            algebra.TruthValue(x): {algebra.TruthValue(y): m for y, m in v.items()}
+            algebra.TruthValue(x): {
+                algebra.TruthValue(y): algebra.TruthValue(m) for y, m in v.items()
+            }
             for x, v in spec["meet"].items()
         }
     if "join" in spec:
         join = {
-            algebra.TruthValue(x): {algebra.TruthValue(y): j for y, j in v.items()}
+            algebra.TruthValue(x): {
+                algebra.TruthValue(y): algebra.TruthValue(j) for y, j in v.items()
+            }
             for x, v in spec["join"].items()
         }
 

@@ -1,10 +1,12 @@
-import os
-from src import algebra, tableau, utils
-import argparse
-from PrettyPrint import PrettyPrintTree
+import os, sys
 
 abspath = os.path.abspath(__file__)
 dname = os.path.dirname(abspath)
+sys.path.append(os.path.dirname(f"{dname}/src/"))
+
+from src import tableau, utils
+import argparse
+from PrettyPrint import PrettyPrintTree
 
 
 def main(args):
@@ -17,7 +19,7 @@ def main(args):
             lambda x: str(x.signed_formula),
             lambda x: f"<{x.world}, {x.relation}>",
         )
-        pt(tableau.root)
+        pt(tab.root)
 
     if not valid and args.display_model:
         M = tableau.construct_counter_model(args.expression, H, tab)
@@ -26,7 +28,7 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("expression")
+    parser.add_argument("expression", default="p")
     parser.add_argument(
         "-a",
         "--algebra",

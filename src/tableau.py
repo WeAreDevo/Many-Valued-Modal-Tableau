@@ -467,7 +467,7 @@ def reactivate(current_node, q, H):
 
 
 def construct_tableau(
-    input_signed_formula: Signed_Formula, H: HeytingAlgebra, print=True
+    input_signed_formula: Signed_Formula, H: HeytingAlgebra, print=False
 ):
     root = Tableau_Node(
         world=gen.get_new_symbol(), relation=set(), signed_formula=input_signed_formula
@@ -1024,7 +1024,7 @@ def isValid(phi: str, H: HeytingAlgebra):
     signed_bounding_imp = Signed_Formula("F", bounding_imp)
 
     tableau = construct_tableau(signed_bounding_imp, H)
-    return tableau.isClosed()
+    return tableau.isClosed(), tableau
 
 
 def construct_counter_model(formula: str, H: HeytingAlgebra, tableau: Tableau = None):

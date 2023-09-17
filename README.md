@@ -4,9 +4,19 @@ This repo contains the implementation of a desicion procedure for checking the v
 ## Getting Started
 - Download this repo.
 - [Install Miniconda](https://doi.org/10.1007/978-94-017-2794-5)
-- Open a terminal or Anaconda Prompt window. Navigate to the root folder of this repo and execute the comand: ```conda env create -f environment.yml ```
-- Activate the new environment by executing the commad: `conda activate mvml`
-- Run the python file with `python main.py -e "<expression>"`, where `<expression>` is the propositional modal formula you wish to check is valid. 
+- Open a terminal or Anaconda Prompt window. Navigate to the root folder of this repo and execute the comand: 
+```zsh
+  conda env create -f environment.yml
+```
+- Activate the new environment by executing the commad: 
+```zsh
+conda activate mvml
+```
+- Run the python file with 
+```
+python main.py "<expression>" --print_tableau --display_model
+``` 
+Where `<expression>` is the propositional modal formula you wish to check is valid. The `--print_tableau` flag enables printing the constructed tableau to the terminal, and the `--display_model` flag enables displaying a counter model (if it exists) in a seperate window.
 
 ### Note
 `<expression>` should only contain well formed combinations of strings denoting:
@@ -67,6 +77,11 @@ For example, a json specification of the three-valued heyting algebra $(\{0,\fra
             "1": {"0": "1", "a": "1", "1": "1"}
         }
 }
+```
+
+To make the program use your specified algebra, indicate the name of the `json` file using the `--algebra` command line flag. E.g.
+```zsh
+python main.py "[]p->p" --algebra three_valued.json --print_tableau --display_model
 ```
 
 ### Note

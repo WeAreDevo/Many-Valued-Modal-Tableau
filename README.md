@@ -60,24 +60,7 @@ If we assume the json is intended to represent a heyting algebra $\mathcal{H}=(H
 - `meet["<ti>"]["<tk>"]=="<mi_k>"` iff $I($`"<mi_k>"`$) = I($`"<ti>"`$) \land I($`"<tk>"`$)$
 - `join["<ti>"]["<tk>"]=="<ji_k>"` iff $I($`"<ji_k>"`$) = I($`"<ti>"`$) \lor I($`"<tk>"`$)$
 
-For example, a json specification of the three-valued heyting algebra $(\{0,\frac{1}{2},1\}, \land, \lor, 0,1,\leq)$ with $I($`"0"`$)=0, I($`"a"`$)=\frac{1}{2}, I($`"1"`$)=1,$ would be as follows:
-
-```json
-{
-    "elements": ["0","a","1"],
-    "order": {"0": ["0","a","1"], "a": ["a","1"], "1": ["1"]},
-    "meet": {
-            "0": {"0": "0", "a": "0", "1": "0"},
-            "a": {"0": "0", "a": "a", "1": "a"},
-            "1": {"0": "0", "a": "a", "1": "1"}
-        },
-    "join": {
-            "0": {"0": "0", "a": "a", "1": "1"},
-            "a": {"0": "a", "a": "a", "1": "1"},
-            "1": {"0": "1", "a": "1", "1": "1"}
-        }
-}
-```
+For example, the default json used is in `algebra_specs/three_valued.json` and is a specification of the three-valued heyting algebra $(\{0,\frac{1}{2},1\}, \land, \lor, 0,1,\leq)$ with $I($`"0"`$)=0, I($`"a"`$)=\frac{1}{2}, I($`"1"`$)=1$.
 
 To make the program use your specified algebra, indicate the name of the `json` file using the `--algebra` command line flag. E.g.
 ```zsh

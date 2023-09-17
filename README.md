@@ -6,10 +6,17 @@ This repo contains the implementation of a desicion procedure for checking the v
 - [Install Miniconda](https://doi.org/10.1007/978-94-017-2794-5)
 - Open a terminal or Anaconda Prompt window. Navigate to the root folder of this repo and execute the comand: ```conda env create -f environment.yml ```
 - Activate the new environment by executing the commad: `conda activate mvml`
-- Run the python file with `python main.py -e "<expression>"`, where `<expression>` is the propositional modal formula you wish to check is valid. `<expression>` should only contain well formed combinations of strings denoting
+- Run the python file with `python main.py -e "<expression>"`, where `<expression>` is the propositional modal formula you wish to check is valid. 
+
+### Note
+`<expression>` should only contain well formed combinations of strings denoting:
   -  propositional variables, which must match the regex `[p-z]\d*` (i.e. begin with a letter between "p" and "z", followed by a string of zero or more decimal digits)
   - a truth value from the specified algebra (see configurations below)
   - a connective such as `"&"`, `"|"`, `"->"`, `"[]"`, `"<>"` (These corrrespond respectively to the syntactic objects $\land, \lor, \supset, \Box, \Diamond$ as presented in [[2]](#2))
+  - Matching parentheses `"("`,`")"`.
+
+If some matching parentheses are not present, the usual order of precedence for propositional formulas is assumed.
+  
 
 ## Configurations
 By default, the class of frames in which validity is checked is the class of all $\mathcal{H}$-frames[^1], where $\mathcal{H}$ is the three-valued heyting algebra. To specify another finite heyting algebra, create a json file in the `algebra_specs` directory with the following format:
@@ -43,28 +50,32 @@ If we assume the json is intended to represent a heyting algebra $\mathcal{H}=(H
 - `meet["<ti>"]["<tk>"]=="<mi_k>"` iff $I($`"<mi_k>"`$) = I($`"<ti>"`$) \land I($`"<tk>"`$)$
 - `join["<ti>"]["<tk>"]=="<ji_k>"` iff $I($`"<ji_k>"`$) = I($`"<ti>"`$) \lor I($`"<tk>"`$)$
 
-For example, a json specification of the three-valued heyting algebra $(\{0,\frac{1}{2},1\}, \land, \lor, 0,1,\leq)$ with $I($`"a"`$)=\frac{1}{2}$ would be as follows:
+For example, a json specification of the three-valued heyting algebra $(\{0,\frac{1}{2},1\}, \land, \lor, 0,1,\leq)$ with $I($`"0"`$)=0, I($`"a"`$)=\frac{1}{2}, I($`"1"`$)=1,$ would be as follows:
 
 ```json
 {
     "elements": ["0","a","1"],
-    "order": order = {"<t1>": {t1_1,...,t1_k1}, "<t2>": {t2_1,...,t2_k2},...,"<tn>": {tn_1,...,tn_kn}},
+    "order": {"0": {"0","a","1"}, "a": {"a","1"}, "1": {"1"}},
     "meet": {
-            "<t1>": {"<t1>": "<m1_1>", "<t2>": "<m1_2>", ..., "<tn>": "<m1_n>"},
-            "<t2>": {"<t1>": "<m2_1>", "<t2>": "<m2_2>", ..., "<tn>": "<m2_n>"},
-            .
-            .
-            .
-            "<tn>": {"<t1>": "<mn_1>", "<t2>": "<mn_2>", ..., "<tn>": "<mn_n>"},
+            "0": {"0": "0", "a": "0", "1": "0"},
+            "a": {"0": "0", "a": "a", "1": "a"},
+            "1": {"0": "0", "a": "a", "1": "1"}
         },
     "join": {
-            "<t1>": {"<t1>": "<j1_1>", "<t2>": "<j1_2>", ..., "<tn>": "<j1_n>"},
-            "<t2>": {"<t1>": "<j2_1>", "<t2>": "<j2_2>", ..., "<tn>": "<j2_n>"},
-            .
-            .
-            .
-            "<tn>": {"<t1>": "<jn_1>", "<t2>": "<jn_2>", ..., "<tn>": "<jn_n>"},
+            "0": {"0": "0", "a": "a", "1": "1"},
+            "a": {"0": "a", "a": "a", "1": "1"},
+            "1": {"0": "1", "a": "1", "1": "1"}
         }
+}
+```
+
+### Note
+Only **one** of the `order`, `meet` or `join` fields needs to be specified and the other two can be left out of the `json`. If at least one of these is specified, the others can be uniquely determined. For example, the following is an acceptable specification of a four-valued Heyting algebra:
+
+```json
+{
+    "elements": ["0","a","b","1"],
+    "order": {"0": {"0","a","b","1"}, "a": {"a","1"}, "b": {"b","1"}, "1": {"1"}}
 }
 ```
 
@@ -83,5 +94,5 @@ Fitting, M. (1992). Many-valued modal logics II. Fundamenta Informaticae, 17, 55
 
 
 ## TODO
-- Check if specified finite algebra is bounded distributive lattice
+- Check if specified finite algebra is in fact a bounded distributive lattice (and hence Heyting algebra)
 - Allow choice of stricter clsses of frames

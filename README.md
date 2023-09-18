@@ -30,7 +30,7 @@ If some matching parentheses are not present, the usual order of precedence for 
 
 ## Configurations
 By default, the class of frames in which validity is checked is the class of all $\mathcal{H}$-frames[^1], where $\mathcal{H}$ is the three-valued heyting algebra. To specify another finite heyting algebra, create a json file in the `algebra_specs` directory with the following format:
-```json
+```
 {
     "elements": ["<t1>","<t2>",...,"<tn>"],
     "order": {"<t1>": ["<t1_1>",...,"<t1_k1>"], "<t2>": ["<t2_1>",...,"<t2_k2>"],...,"<tn>": ["<tn_1>",...,"<tn_kn">]},
@@ -55,12 +55,12 @@ By default, the class of frames in which validity is checked is the class of all
 Where each angle bracket string in the above should be replaced with a string denoting a truth value. Such a string must match the regex `[a-o0-9]\d*`. That is, it should be a string of decimal digits, or a letter between a and o (inclusive) followed by a string of decimal digits.
 
 If we assume the json is intended to represent a heyting algebra $\mathcal{H}=(H,\land,\lor,0,1, \leq)$, and $I$ is the mapping from the strings denoting truth values to the actual truth values in $H$, then the json should be interpreted as follows:
-- If $a \in H$, then $a=I($`"<ti>"`$)$ for some `"<ti>"` in `elements`.
-- `"<ti>"` is in `order["<tk>"]` iff $I($`"<tk>"`$)  \leq I($`"<ti>"`$)$ 
-- `meet["<ti>"]["<tk>"]=="<mi_k>"` iff $I($`"<mi_k>"`$) = I($`"<ti>"`$) \land I($`"<tk>"`$)$
-- `join["<ti>"]["<tk>"]=="<ji_k>"` iff $I($`"<ji_k>"`$) = I($`"<ti>"`$) \lor I($`"<tk>"`$)$
+- If $a \in H$, then $a=I(\texttt{"<ti>"})$ for some `"<ti>"` in `elements`.
+- `"<ti>"` is in `order["<tk>"]` iff $I(\texttt{"<tk>"})  \leq I(\texttt{"<ti>"})$ 
+- `meet["<ti>"]["<tk>"]=="<mi_k>"` iff $I(\texttt{"<mi\_k>"}) = I(\texttt{"<ti>"}) \land I(\texttt{"<tk>"})$
+- `join["<ti>"]["<tk>"]=="<ji_k>"` iff $I(\texttt{"<ji\_k>"}) = I(\texttt{"<ti>"}) \lor I(\texttt{"<tk>"})$
 
-For example, the default json used is in `algebra_specs/three_valued.json` and is a specification of the three-valued heyting algebra $(\{0,\frac{1}{2},1\}, \land, \lor, 0,1,\leq)$ with $I($`"0"`$)=0, I($`"a"`$)=\frac{1}{2}, I($`"1"`$)=1$.
+For example, the default json used is in `algebra_specs/three_valued.json` and is a specification of the three-valued heyting algebra $(\{0,\frac{1}{2},1\}, \land, \lor, 0,1,\leq)$ with $I(\texttt{"0"})=0, I(\texttt{"a"})=\frac{1}{2}, I(\texttt{"1"})=1$.
 
 To make the program use your specified algebra, indicate the name of the `json` file using the `--algebra` command line flag. E.g.
 ```zsh

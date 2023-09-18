@@ -55,7 +55,7 @@ By default, the class of frames in which validity is checked is the class of all
 Where each angle bracket string in the above should be replaced with a string denoting a truth value. Such a string must match the regex `[a-o0-9]\d*`. That is, it should be a string of decimal digits, or a letter between a and o (inclusive) followed by a string of decimal digits.
 
 If we assume the json is intended to represent a heyting algebra $\mathcal{H}=(H,\land,\lor,0,1, \leq)$, and $I$ is the mapping from the strings denoting truth values to the actual truth values in $H$, then the json should be interpreted as follows:
-- If $a \in H$, then $a=I(\text{<}\texttt{"ti"}\text{>})$ for some `"<ti>"` in `elements`.
+- $a \in H$ iff $a=I(\text{<}\texttt{"ti"}\text{>})$ for some `"<ti>"` in `elements`.
 - `"<ti>"` is in `order["<tk>"]` iff $I(\texttt{"}\text{<}\texttt{tk}\text{>}\texttt{"})  \leq I(\texttt{"}\text{<}\texttt{ti}\text{>}\texttt{"})$ 
 - `meet["<ti>"]["<tk>"]=="<mi_k>"` iff $I(\texttt{"}\text{<}\texttt{mi{\\_}k}\text{>}\texttt{"}) = I(\texttt{"}\text{<}\texttt{ti}\text{>}\texttt{"}) \land I(\texttt{"}\text{<}\texttt{tk}\text{>}\texttt{"})$
 - `join["<ti>"]["<tk>"]=="<ji_k>"` iff $I(\texttt{"}\text{<}\texttt{ji{\\_}k}\text{>}\texttt{"}) = I(\texttt{"}\text{<}\texttt{ti}\text{>}\texttt{"}) \lor I(\texttt{"}\text{<}\texttt{tk}\text{>}\texttt{"})$

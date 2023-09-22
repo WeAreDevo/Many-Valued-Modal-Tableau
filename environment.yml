@@ -1,4 +1,4 @@
-name: masters
+name: mvml
 channels:
   - conda-forge
 dependencies:
@@ -74,4 +74,3 @@ dependencies:
   - pip:
       - colorama==0.4.6
       - prettyprinttree==1.36.2
-prefix: /Users/guy.ross.axelrodibm.com/miniforge3/envs/masters

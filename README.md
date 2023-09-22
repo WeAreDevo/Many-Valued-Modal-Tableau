@@ -1,9 +1,9 @@
 # Many-Valued-Modal-Tableau
-This repo contains the implementation of a desicion procedure for checking the validity of many-valued modal logic formulas. It is based on expansions of  Fitting's work in [[1]](#1) and [[2]](#2)
+This repo contains the implementation of a desicion procedure for checking the validity of many-valued modal logic formulas. It is based on expansions of  Fitting's work in [[1]](#1) and [[2]](#2). The proof of the correctness and termination of the procedure forms part of my master's dissertation which is in progress and will be linked after it has been submitted.
 
 ## Getting Started
 - Download this repo.
-- [Install Miniconda](https://doi.org/10.1007/978-94-017-2794-5)
+- [Install Miniconda](https://doi.org/10.1007/978-94-017-2794-5) (if you do not already have `conda` on your system)
 - Open a terminal or Anaconda Prompt window. Navigate to the root folder of this repo and execute the comand: 
 ```zsh
 conda env create -f environment.yml

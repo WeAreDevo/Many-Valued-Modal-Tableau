@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 [project]
 dependencies = ["matplotlib", "networkx", "ply", "prettyprinttree"]
 name = "mvmt"
-version = "0.0.3"
+version = "0.0.4"
 authors = [{ name = "Guy Axelrod", email = "g.axelrod1@gmail.com" }]
 description = "A package for checking the validity of many-valued modal formulas"
 readme = "README.md"

@@ -6,6 +6,9 @@ There are two ways you can use this code.
 ### Option 1: Install it as a package (Recommended)
 This is the easiest method for those that just want to use the code and not alter it.
 Just `pip install mvmt` and use the modules provided. To get started quickly, see the colab document.
+<a target="_blank" href="https://colab.research.google.com/github/WeAreDevo/Many-Valued-Modal-Tableau/blob/test_package/mvmt_demo.ipynb">
+  <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open Demo In Colab"/>
+</a>
 
 ### Option 2: Run the source code directly
 - Download or clone this repo.

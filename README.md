@@ -1,18 +1,19 @@
-# Many-Valued-Modal-Tableau
+# Many-Valued Modal Tableau (mvmt)
 This repo contains the implementation of a desicion procedure for checking the validity of many-valued modal logic formulas. It is based on expansions of  Fitting's work in [[1]](#1) and [[2]](#2). The proof of the correctness and termination of the procedure forms part of my master's dissertation which is in progress and will be linked after it has been submitted.
 
 ## Getting Started
-- Download this repo.
-- [Install Miniconda](https://doi.org/10.1007/978-94-017-2794-5) (if you do not already have `conda` on your system)
-- Open a terminal or Anaconda Prompt window. Navigate to the root folder of this repo and execute the comand: 
-```zsh
-conda env create -f environment.yml
-```
-- Activate the new environment by executing the commad: 
-```zsh
-conda activate mvml
-```
-- Run the python file with 
+There are two ways you can use this code.
+### Option 1: Install it as a package (Recommended)
+This is the easiest method for those that just want to use the code and not alter it.
+Just `pip install mvmt` and use the modules provided. To get started quickly, see the colab document.
+<a target="_blank" href="https://colab.research.google.com/github/WeAreDevo/Many-Valued-Modal-Tableau/blob/test_package/mvmt_demo.ipynb">
+  <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open Demo In Colab"/>
+</a>
+
+### Option 2: Run the source code directly
+- Download or clone this repo.
+- Create a virtual enironment (using `conda` or `virtualenv`) and install the dependecies.
+- Run `main.py`:
 ```
 python main.py "<expression>" --print_tableau --display_model
 ``` 

@@ -4,13 +4,15 @@ abspath = os.path.abspath(__file__)
 dname = os.path.dirname(abspath)
 sys.path.append(os.path.dirname(f"{dname}/src/"))
 
-from src import tableau, utils
+from src.mvmt import tableau, utils
 import argparse
 from PrettyPrint import PrettyPrintTree
 
 
 def main(args):
-    H = utils.read_algebra(f"{dname}/algebra_specs/{args.algebra}")
+    H = utils.construct_heyting_algebra(
+        file_path=f"{dname}/algebra_specs/{args.algebra}"
+    )
     valid, tab = tableau.isValid(args.expression, H)
     print(f"{args.expression} is valid: {valid}")
     if args.print_tableau:

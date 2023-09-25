@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 import functools
-from syntax import AST_Node, parse_expression
-from algebra import TruthValue, HeytingAlgebra, Poset
+from mvmt.syntax import AST_Node, parse_expression
+from mvmt.algebra import TruthValue, HeytingAlgebra, Poset
 from collections import deque
 import copy
 from PrettyPrint import PrettyPrintTree

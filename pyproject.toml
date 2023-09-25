@@ -1,0 +1,20 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+[project]
+dependencies = ["matplotlib", "networkx", "ply", "prettyprinttree"]
+name = "mvmt"
+version = "0.0.5"
+authors = [{ name = "Guy Axelrod", email = "g.axelrod1@gmail.com" }]
+description = "A package for checking the validity of many-valued modal formulas"
+readme = "README.md"
+requires-python = ">=3.8"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/WeAreDevo/Many-Valued-Modal-Tableau"
+"Bug Tracker" = "https://github.com/WeAreDevo/Many-Valued-Modal-Tableau/issues"

@@ -9,4 +9,4 @@ dependencies:
 - pip:
   - colorama==0.4.6
   - prettyprinttree==1.36.2
-name: mvml_test
+name: mvmt

@@ -1,5 +1,5 @@
 from ply import lex, yacc
-from algebra import TruthValue
+from mvmt.algebra import TruthValue
 
 
 class AST_Node:

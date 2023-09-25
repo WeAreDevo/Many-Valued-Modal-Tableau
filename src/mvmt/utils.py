@@ -1,5 +1,5 @@
 import json
-import algebra
+from mvmt import algebra
 
 
 def load_json(file_path):
@@ -8,8 +8,11 @@ def load_json(file_path):
         return data
 
 
-def read_algebra(file_path: str):
-    spec: dict = load_json(file_path)
+def construct_heyting_algebra(file_path: str = None, python_dict: dict = None):
+    if(file_path):
+        spec: dict = load_json(file_path)
+    else:
+        spec: dict = python_dict
     if not "elements" in spec:
         raise KeyError('"elements" key not found in algebra specification.')
     elements = {algebra.TruthValue(e) for e in spec["elements"]}

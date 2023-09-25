@@ -1,4 +1,4 @@
-# Many-Valued-Modal-Tableau
+# Many-Valued Modal Tableau (mvmt)
 This repo contains the implementation of a desicion procedure for checking the validity of many-valued modal logic formulas. It is based on expansions of  Fitting's work in [[1]](#1) and [[2]](#2). The proof of the correctness and termination of the procedure forms part of my master's dissertation which is in progress and will be linked after it has been submitted.
 
 ## Getting Started
@@ -12,7 +12,7 @@ conda env create -f environment.yml
 ```zsh
 conda activate mvml
 ```
-- Run the python file with 
+- Run `main.py`
 ```
 python main.py "<expression>" --print_tableau --display_model
 ``` 

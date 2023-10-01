@@ -59,9 +59,9 @@ Where each angle bracket string in the above should be replaced with a string de
 
 If we assume the json is intended to represent a heyting algebra $\mathcal{H}=(H,\land,\lor,0,1, \leq)$, and $I$ is the mapping from the strings denoting truth values to the actual truth values in $H$, then the json should be interpreted as follows:
 - $a \in H$ iff $a=I$("&lt;ti&gt;") for some `"<ti>"` in `elements`.
-- `"<ti>"` is in `order["<tk>"]` iff $I(\texttt{"}\text{<}\texttt{tk}\text{>}\texttt{"})  \leq I(\texttt{"}\text{<}\texttt{ti}\text{>}\texttt{"})$ 
-- `meet["<ti>"]["<tk>"]=="<mi_k>"` iff $I(\texttt{"}\text{<}\texttt{mi{\\_}k}\text{>}\texttt{"}) = I(\texttt{"}\text{<}\texttt{ti}\text{>}\texttt{"}) \land I(\texttt{"}\text{<}\texttt{tk}\text{>}\texttt{"})$
-- `join["<ti>"]["<tk>"]=="<ji_k>"` iff $I(\texttt{"}\text{<}\texttt{ji{\\_}k}\text{>}\texttt{"}) = I(\texttt{"}\text{<}\texttt{ti}\text{>}\texttt{"}) \lor I(\texttt{"}\text{<}\texttt{tk}\text{>}\texttt{"})$
+- `"<ti>"` is in `order["<tk>"]` iff $I$("&lt;tk&gt;")  $\leq I$("&lt;ti&gt;")
+- `meet["<ti>"]["<tk>"]=="<mi_k>"` iff $I$("&lt;mi_k&gt;") $= I$("&lt;ti&gt;") $\land I$("&lt;tk&gt;")
+- `join["<ti>"]["<tk>"]=="<ji_k>"` iff $I$("&lt;ji_k&gt;") $= I$("&lt;ti&gt;") $\lor I$("&lt;tk&gt;")
 
 For example, a specification of the three-valued Heyting algebra $(\{0,\frac{1}{2},1\}, \land, \lor, 0,1,\leq)$ with $I(\texttt{"0"})=0, I(\texttt{"a"})=\frac{1}{2}, I(\texttt{"1"})=1$ is given by:
 ```json

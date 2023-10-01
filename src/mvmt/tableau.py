@@ -1027,8 +1027,8 @@ def isValid(phi: str, H: HeytingAlgebra):
     return tableau.isClosed(), tableau
 
 
-def construct_counter_model(formula: str, H: HeytingAlgebra, tableau: Tableau = None):
-    formula_parsed = parse_expression(formula)
+def construct_counter_model(phi: str, H: HeytingAlgebra, tableau: Tableau = None):
+    formula_parsed = parse_expression(phi)
     bounding_imp = AST_Node(
         type="binop",
         val="->",
@@ -1046,7 +1046,7 @@ def construct_counter_model(formula: str, H: HeytingAlgebra, tableau: Tableau = 
     S = open_branches[0]
     W = worlds(S)
     R_tmp = cons(S)
-    prop_vars = re.findall(r"[p-z]\d*", formula)
+    prop_vars = re.findall(r"[p-z]\d*", phi)
 
     def get_bounds(S: list[Tableau_Node], prop_var: str, world: str):
         lbs = []

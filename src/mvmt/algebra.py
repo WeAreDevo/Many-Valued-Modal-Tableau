@@ -17,11 +17,11 @@ class Poset:
     def addEdge(self, u, v):
         self.order[u].add(v)
 
-    def topologicalSortUtil(self, u, visited, stack):
+    def __topologicalSortUtil(self, u, visited, stack):
         visited[u] = True
         for v in self.order[u]:
             if visited[v] == False:
-                self.topologicalSortUtil(v, visited, stack)
+                self.__topologicalSortUtil(v, visited, stack)
         stack.appendleft(u)
 
     def getTopSort(self):
@@ -35,7 +35,7 @@ class Poset:
         stack = deque()
         for e in self.elements:
             if visited[e] == False:
-                self.topologicalSortUtil(e, visited, stack)
+                self.__topologicalSortUtil(e, visited, stack)
         self.topsort = list(stack)
 
     def minimals(self, S: set):
@@ -86,7 +86,7 @@ class HeytingAlgebra:
                     "At least one of meetOp, joinOp or poset must be passed in order to uniquely determine the bounded lattice"
                 )
             self.meetOp = {a: {b: None for b in self.elements} for a in self.elements}
-            self.deriveMeet()
+            self.__deriveMeet()
 
         if self.joinOp == None:
             if poset == None and meetOp == None:
@@ -94,10 +94,10 @@ class HeytingAlgebra:
                     "At least one of meetOp, joinOp or poset must be passed in order to uniquely determine the bounded lattice"
                 )
             self.joinOp = {a: {b: None for b in self.elements} for a in self.elements}
-            self.deriveJoin()
+            self.__deriveJoin()
 
         if self.poset == None:
-            self.derivePoset()
+            self.__derivePoset()
 
         self.__findBot()
 
@@ -105,7 +105,7 @@ class HeytingAlgebra:
             self.impliesOp = {
                 a: {b: None for b in self.elements} for a in self.elements
             }
-            self.deriveImplies()
+            self.__deriveImplies()
 
         self.__findTop()
 
@@ -118,7 +118,7 @@ class HeytingAlgebra:
     def __findTop(self):
         self.top = self.implies(self.bot, self.bot)
 
-    def derivePoset(self):
+    def __derivePoset(self):
         poset = Poset(self.elements)
         if self.meetOp != None:
             for x in self.meetOp.keys():
@@ -134,7 +134,7 @@ class HeytingAlgebra:
                         poset.addEdge(y, x)
             self.poset = poset
 
-    def deriveImplies(self):
+    def __deriveImplies(self):
         # a -> b = join{c | a meet c \leq b}
         for a in self.elements:
             for b in self.elements:
@@ -145,9 +145,9 @@ class HeytingAlgebra:
                 )
         return
 
-    def deriveJoin(self):
+    def __deriveJoin(self):
         if self.poset == None:
-            self.derivePoset()
+            self.__derivePoset()
 
         # Now do something with the topological sort?
         t_sort = self.poset.getTopSort()
@@ -161,9 +161,9 @@ class HeytingAlgebra:
                         self.joinOp[a][b] = c
                         break
 
-    def deriveMeet(self):
+    def __deriveMeet(self):
         if self.poset == None:
-            self.derivePoset()
+            self.__derivePoset()
 
         # Now do something with the topological sort?
         t_sort = self.poset.getTopSort()

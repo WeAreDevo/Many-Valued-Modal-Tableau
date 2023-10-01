@@ -750,7 +750,7 @@ def construct_tableau(
                     and H.poset.leq(t, X.parse_tree.proper_subformulas[0].val)
                 }
                 children = []
-                for t in H.poset.minimals(elems):
+                for t in elems:
                     proper_subformulas1 = [
                         AST_Node("atom", t),
                         phi,
@@ -1195,5 +1195,4 @@ if __name__ == "__main__":
     # tableau = construct_tableau(signed_form, ha)
     M = construct_counter_model(expression, ha)
     visualize_model(M)
-    # print(f"{expression} is valid: {isValid(expression, ha)}")
     pass

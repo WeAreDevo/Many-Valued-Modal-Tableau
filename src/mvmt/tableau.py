@@ -818,8 +818,8 @@ def construct_tableau(
                     if not t == H.bot
                     and H.poset.leq(t, X.parse_tree.proper_subformulas[0].val)
                 }
-                children = []
-                for t in elems:
+                for t in elems:  # possibly H.poset.maximals(elems)? TODO
+                    children = []
                     proper_subformulas1 = [
                         AST_Node("atom", t),
                         phi,
@@ -855,7 +855,7 @@ def construct_tableau(
                         signed_formula=new_signed_formula2,
                     )
                     children.extend([n1, n2])
-                forkOpenBranches(current_node, children, q)
+                    forkOpenBranches(current_node, children, q)
 
             # T[]
             # Check if reversal should be applied first

@@ -185,9 +185,10 @@ def forkOpenBranches(node: Tableau_Node, children: list[Tableau_Node], q: deque)
     if node.closed:
         return
     if not node.children:
-        children_copy = copy.deepcopy(children)
+        children_copy = copy.deepcopy(children) # Don't want these pointing to same nodes across recursive calls (i.e. nodes with different parents must be distinct!).
         for c in children_copy:
             c.parent = node
+            #In the case in which we are extending the tableau with a sub-branch (e.g. Tleq or T&) make sure to add all nodes to the queue.
             curr = [c]
             while curr:
                 q.appendleft(curr[0])
@@ -253,6 +254,7 @@ def ApplyTleq(curr: Tableau_Node, q: deque[Tableau_Node], H: HeytingAlgebra):
             signed_formula=new_signed_formula,
         )
         new_nodes.append(n)
+    # Create a sub-branch to extend the tableau with
     for i in range(len(new_nodes) - 1):
         new_nodes[i].children = [new_nodes[i + 1]]
     forkOpenBranches(curr, [new_nodes[0]], q)

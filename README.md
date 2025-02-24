@@ -1,6 +1,6 @@
 # Many-Valued Modal Tableau (mvmt)
 ## Description
-This repo contains the implementation of a desicion procedure for checking the validity of many-valued modal logic formulas. It is based on expansions of  Fitting's work in [[1]](#1) and [[2]](#2). The proof of the correctness and termination of the procedure forms part of my master's dissertation which is in progress and will be linked after it has been submitted.
+This repo contains the implementation of a desicion procedure for checking the validity of many-valued modal logic formulas. It is based on expansions of  Fitting's work in [[1]](#1) and [[2]](#2). The proof of the correctness and termination of the procedure formed part of my master's dissertation. More technical detail's can be found in this workshop [paper](https://ceur-ws.org/Vol-3717/paper1.pdf).
 
 ## Installation
 ```bash
